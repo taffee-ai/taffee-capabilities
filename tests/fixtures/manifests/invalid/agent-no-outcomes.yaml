@@ -1,0 +1,16 @@
+# Failing fixture: an agent with no outcomes. Tests only.
+kind: agent
+name: fixture-agent
+version: 1.0.0
+owner: fixtures-owner
+summary: A test-only agent declaration missing its outcomes.
+source:
+  type: library
+  location: library/fixture-agent
+requires: []
+outcomes: []
+tools: []
+roles: []
+limits:
+  turns: 5
+  minutes: 5

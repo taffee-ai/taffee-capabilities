@@ -1,0 +1,29 @@
+{
+  "cases_digest": "sha256:63020d049615c01d01e510b8d8be708fc775ddd2f5926cf0c11777155bf2c959",
+  "environment": {
+    "arch": "x86_64",
+    "find": "find (GNU findutils) 4.10.0",
+    "git": "git version 2.47.3",
+    "grep": "grep (GNU grep) 3.11",
+    "os": "Linux",
+    "python": "3.12.15"
+  },
+  "fingerprint": "sha256:b79befa98d117ba394b05b84f939e65319c767bdd0b3eac6ddc424ace0b3f417",
+  "identity": "sha256:17db7b471ae74af9f432f8c5e832db1bc8921c165aedabc128d0b20558c60c3f",
+  "name": "unawaited-async",
+  "policy_version": 2,
+  "schema": "capability-evidence/1",
+  "suite": {
+    "digest": "sha256:c37856de7bfcf839c48dfc2789b5244c66487f8d0e3a53902eea59cd9333f346",
+    "path": "tests/test_tools_t001.py"
+  },
+  "tests": {
+    "errors": 0,
+    "failed": 0,
+    "passed": 46,
+    "run": 46,
+    "skipped": 0,
+    "skipped_reasons": []
+  },
+  "version": "1.1.0"
+}

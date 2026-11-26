@@ -1,0 +1,15 @@
+{
+  "_source": "taffee-context context/retrieval/query/graph-query-tool.ts, GRAPH_QUERY_SCHEMA.function.parameters, inspected 2026-10-19. A pinned copy: Context publishes no graph_query tool yet, so this is the contract the wrapper declares, not a fetched schema.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "repoId": {"type": "string"},
+      "commitSHA": {"type": "string", "description": "Full Git SHA. Omit for newest ingested commit timestamp."},
+      "operation": {"type": "string", "enum": ["resolve", "find_symbol", "get_callers", "get_callees", "get_dependencies"]},
+      "symbol": {"type": "string", "description": "Label fragment for find_symbol; exact localId for relationship queries."},
+      "limit": {"type": "integer", "minimum": 1, "maximum": 20}
+    },
+    "required": ["repoId", "operation"]
+  }
+}

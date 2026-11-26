@@ -1,0 +1,21 @@
+# Failing fixture: a raw credential inside a model manifest. Tests only.
+kind: model
+name: fixture-model
+version: 1.0.0
+owner: fixtures-owner
+summary: A test-only model declaration that carries a key.
+source:
+  type: library
+  location: library/fixture-model-adapter
+requires: []
+provider:
+  name: fixture-provider
+  modelId: fixture-model
+  modelVersion: "2025-06-01"
+  apiKey: sk-not-a-real-key
+category: frontier
+licence: proprietary-fixture
+dataTerms:
+  retention: none
+  trainingUse: "no"
+  allowedDataClasses: [public]

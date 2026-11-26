@@ -1,0 +1,15 @@
+# Failing fixture: a date that JSON cannot represent. Tests only.
+kind: tool
+name: fixture-tool
+version: 1.0.0
+owner: fixtures-owner
+summary: A test-only tool with a date value.
+implementations: []
+requires: []
+released: 2026-10-17
+spec:
+  inputSchema: {type: object}
+  readOnly: true
+  idempotent: true
+  timeoutMs: 5000
+  boundary: []

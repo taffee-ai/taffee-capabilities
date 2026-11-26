@@ -1,0 +1,98 @@
+[
+  {
+    "id": "flags-an-async-function-with-no-await",
+    "input": {
+      "files": "**/*.ts"
+    },
+    "files": {
+      "x.ts": "async function load() {\n  return 1;\n}\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "x.ts:1",
+      "not_contains": "No unawaited"
+    }
+  },
+  {
+    "id": "an-awaiting-function-is-not-flagged",
+    "input": {
+      "files": "**/*.ts"
+    },
+    "files": {
+      "y.ts": "async function load() {\n  await fetch();\n}\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "No unawaited async functions found."
+    }
+  },
+  {
+    "id": "an-await-in-a-comment-does-not-count",
+    "input": {
+      "files": "**/*.ts"
+    },
+    "files": {
+      "c.ts": "async function f() {\n  // await later\n  return 1;\n}\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "c.ts:1"
+    }
+  },
+  {
+    "id": "the-word-async-in-a-string-is-not-a-declaration",
+    "input": {
+      "files": "**/*.ts"
+    },
+    "files": {
+      "s.ts": "import { x } from \"./tools/unawaited-async.ts\";\nconst y = {\n  a: 1,\n};\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "No unawaited async functions found."
+    }
+  },
+  {
+    "id": "missing-files-is-an-error-result",
+    "input": {},
+    "files": {
+      "a.ts": ""
+    },
+    "expect": {
+      "ok": false,
+      "exit_code": 0
+    }
+  },
+  {
+    "id": "parent-directory-is-refused",
+    "input": {
+      "files": "../**/*.ts"
+    },
+    "files": {
+      "a.txt": "x\n"
+    },
+    "expect": {
+      "ok": false,
+      "contains": "escapes"
+    }
+  },
+  {
+    "id": "escaping-symlink-is-refused",
+    "input": {
+      "files": "link/**/*.ts"
+    },
+    "files": {
+      "a.txt": "x\n"
+    },
+    "links": {
+      "link": "../outside"
+    },
+    "outside": {
+      "secret.txt": "secret\n"
+    },
+    "expect": {
+      "ok": false,
+      "contains": "symlink"
+    }
+  }
+]

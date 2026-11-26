@@ -1,0 +1,335 @@
+{
+  "entries": [
+    {
+      "evidence": [
+        "conformance:sha256:09424d8ff517ef304988468a91c7c5ee87bea7faf76407e5ca88b38c01ecc958",
+        "tests:sha256:07363fb2a6f932f5d565f0e4c1f9fb5cc988d71b772491ca969213e83dda99fb",
+        "record:sha256:08900e08754d759c82ab686dcb815f468fb77a64bf353a7071a175c5ab0b8d61"
+      ],
+      "identity": "sha256:1d8c9d8b5c76b6a912908521c297444f5d6ddbb2abb14556c41447d3c0c71b75",
+      "implementations": [
+        {
+          "code_digest": "sha256:19a6d00d4b8f07b33d1eac982c6bc82fa0877e07498b843d57d899a22d9006ad",
+          "entry": "main.py",
+          "language": "python"
+        }
+      ],
+      "kind": "tool",
+      "label": "Tested",
+      "manifest": {
+        "implementations": [
+          {
+            "language": "python",
+            "location": "library/git-log/python"
+          }
+        ],
+        "kind": "tool",
+        "name": "git-log",
+        "owner": "capabilities-tools-owner",
+        "requires": [
+          "repo.read"
+        ],
+        "spec": {
+          "boundary": [],
+          "idempotent": true,
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "n": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "n"
+            ],
+            "type": "object"
+          },
+          "postconditions": [
+            {
+              "type": "max_bytes",
+              "value": 25000
+            },
+            {
+              "allow_empty": true,
+              "pattern": "[0-9a-f]{7,40} .+",
+              "type": "each_line_matches"
+            }
+          ],
+          "readOnly": true,
+          "timeoutMs": 5000
+        },
+        "summary": "Show the most recent commits on this repository's current branch.",
+        "version": "1.2.0"
+      },
+      "manifest_digest": "sha256:388e40ad74e48419336c3b26f2a9bac9d07cf06a534ec6f5c7dbacf8b1ef56b6",
+      "name": "git-log",
+      "version": "1.2.0"
+    },
+    {
+      "evidence": [
+        "conformance:sha256:f0ade1764961cd43a9fdab2e1342a35bab10e97be9756e9155f8ba6a5ca37afb",
+        "tests:sha256:3923c3e66d2a4a576f2cda307e653dfbc55284a635fa45dcfbe48faf3cb1ffb5",
+        "record:sha256:7e7f150fdbbc0de496258ef0cd0f61ea6958cb6f7a965b69c4a7c50eb7b90f31"
+      ],
+      "identity": "sha256:f098fb93e2152e5e680ba479a58cdb44a9818c4b141e699e907438bfb292d7e5",
+      "implementations": [
+        {
+          "code_digest": "sha256:4a5cc042a6bc3c3ca80d0775a3087fecc9bc2d6f6e1752340b3dafb607a09907",
+          "entry": "main.py",
+          "language": "python"
+        }
+      ],
+      "kind": "tool",
+      "label": "Tested",
+      "manifest": {
+        "implementations": [
+          {
+            "language": "python",
+            "location": "library/glob/python"
+          }
+        ],
+        "kind": "tool",
+        "name": "glob",
+        "owner": "capabilities-tools-owner",
+        "requires": [
+          "repo.read"
+        ],
+        "spec": {
+          "boundary": [],
+          "idempotent": true,
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "pattern": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "pattern"
+            ],
+            "type": "object"
+          },
+          "postconditions": [
+            {
+              "type": "max_bytes",
+              "value": 25000
+            },
+            {
+              "allow_empty": true,
+              "pattern": "[^/].*|\\[truncated: output exceeded [0-9]+ bytes\\]",
+              "type": "each_line_matches"
+            }
+          ],
+          "readOnly": true,
+          "timeoutMs": 5000
+        },
+        "summary": "Find files by name or shape inside the repository.",
+        "version": "1.3.0"
+      },
+      "manifest_digest": "sha256:2e30c78c5c672440413f3dfc09fa1975e804ee013b78a9a430cbbe19eaa64c14",
+      "name": "glob",
+      "version": "1.3.0"
+    },
+    {
+      "evidence": [],
+      "identity": "sha256:11ee1e2881039ccd8f4c5b371a21b15c6c3f7d087049f9f8698c9e4a2c9144d8",
+      "implementations": [],
+      "kind": "tool",
+      "label": "Declared",
+      "manifest": {
+        "implementations": [],
+        "kind": "tool",
+        "name": "graph-query",
+        "owner": "capabilities-tools-owner",
+        "requires": [
+          "context.read"
+        ],
+        "spec": {
+          "boundary": [],
+          "idempotent": false,
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "commitSHA": {
+                "description": "Full Git SHA. Omit for the newest ingested commit.",
+                "type": "string"
+              },
+              "limit": {
+                "maximum": 20,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "operation": {
+                "enum": [
+                  "resolve",
+                  "find_symbol",
+                  "get_callers",
+                  "get_callees",
+                  "get_dependencies"
+                ],
+                "type": "string"
+              },
+              "repoId": {
+                "type": "string"
+              },
+              "symbol": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "repoId",
+              "operation"
+            ],
+            "type": "object"
+          },
+          "readOnly": true,
+          "timeoutMs": 5000
+        },
+        "summary": "Read a repository code graph: resolve a commit, find symbols, walk callers, callees and dependencies.",
+        "version": "1.0.0"
+      },
+      "manifest_digest": "sha256:95cc7b111dcd7c50555617db3d0ab27e752dc09bc7edba1c37221a642ccb4a27",
+      "name": "graph-query",
+      "version": "1.0.0"
+    },
+    {
+      "evidence": [
+        "conformance:sha256:48a220a91ef8656ba6751537232352354aa247200b04b53bc9d5580bc0bf48c3",
+        "tests:sha256:611893f4a81940e95ef34fca7c7730fc87ea4eb98712dfa89d4c9d79ca43eafd",
+        "record:sha256:3899a8eb2c25f0e229d6949deef1ea27c6823f32693ee49031244d66cec5ba75"
+      ],
+      "identity": "sha256:f022741a5b1b6d6e1ca13ab191d10d937532b3c8e42e7684c7d7b6d5df1a4f5c",
+      "implementations": [
+        {
+          "code_digest": "sha256:3bced50bce09dab21fe3cba007ac18233468223e0d3e27a9b09d115c08f57c4a",
+          "entry": "main.py",
+          "language": "python"
+        }
+      ],
+      "kind": "tool",
+      "label": "Tested",
+      "manifest": {
+        "implementations": [
+          {
+            "language": "python",
+            "location": "library/grep/python"
+          }
+        ],
+        "kind": "tool",
+        "name": "grep",
+        "owner": "capabilities-tools-owner",
+        "requires": [
+          "repo.read"
+        ],
+        "spec": {
+          "boundary": [],
+          "idempotent": true,
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "files": {
+                "type": "string"
+              },
+              "pattern": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "pattern",
+              "files"
+            ],
+            "type": "object"
+          },
+          "postconditions": [
+            {
+              "type": "max_bytes",
+              "value": 25000
+            },
+            {
+              "allow_empty": true,
+              "pattern": ".+:[0-9]+:.*|\\[truncated: output exceeded [0-9]+ bytes\\]",
+              "type": "each_line_matches"
+            }
+          ],
+          "readOnly": true,
+          "timeoutMs": 5000
+        },
+        "summary": "Search file contents for a text pattern, scoped by a file glob.",
+        "version": "1.2.0"
+      },
+      "manifest_digest": "sha256:8d986d6ad4937c666eb6c3c551ea221b4bd05cadc50abf014e0f38010eb4bd10",
+      "name": "grep",
+      "version": "1.2.0"
+    },
+    {
+      "evidence": [
+        "conformance:sha256:63020d049615c01d01e510b8d8be708fc775ddd2f5926cf0c11777155bf2c959",
+        "tests:sha256:5abbf573bb96609fa10a4cef0cae692c5796995b0cc7589641fe94aff1cd1879",
+        "record:sha256:0f8bc2515b204dfc53f9109bab16448ffac6a005aa97d9d45c593be38c25ec17"
+      ],
+      "identity": "sha256:77abc9f9dbd9a3e4a7752f797007d44fb9c04bbd9ed4ee894aea0970c78b7faa",
+      "implementations": [
+        {
+          "code_digest": "sha256:08ea8c4f7153c307468c077bcd31cab3e811e8f3fc470da6b70450f69c12044b",
+          "entry": "main.py",
+          "language": "python"
+        }
+      ],
+      "kind": "tool",
+      "label": "Tested",
+      "manifest": {
+        "implementations": [
+          {
+            "language": "python",
+            "location": "library/unawaited-async/python"
+          }
+        ],
+        "kind": "tool",
+        "name": "unawaited-async",
+        "owner": "capabilities-tools-owner",
+        "requires": [
+          "repo.read"
+        ],
+        "spec": {
+          "boundary": [],
+          "idempotent": true,
+          "inputSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "files": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "files"
+            ],
+            "type": "object"
+          },
+          "postconditions": [
+            {
+              "type": "max_bytes",
+              "value": 25000
+            },
+            {
+              "allow_empty": false,
+              "pattern": "No unawaited async functions found( in the files searched)?\\.|.+:[0-9]+ — async function with no await|\\[truncated: output exceeded [0-9]+ bytes\\]",
+              "type": "each_line_matches"
+            }
+          ],
+          "readOnly": true,
+          "timeoutMs": 5000
+        },
+        "summary": "Find async functions whose body never uses await (TypeScript and JavaScript). Heuristic.",
+        "version": "1.2.0"
+      },
+      "manifest_digest": "sha256:28f726ee152d3b255756892542c0bf955a932635e218e00832ef522c5f5c6203",
+      "name": "unawaited-async",
+      "version": "1.2.0"
+    }
+  ],
+  "index_digest": "sha256:2568a039c0e8a006addc56e32715283a5c4f5a5592b3cdd50f2182a78dc967e5",
+  "inputs_digest": "sha256:a6bbc05d4dbca884398ad1295e778c3cc6934d7536252710559c5675e3c1e9cd",
+  "policy_version": 2,
+  "schema": "capability-index/1"
+}

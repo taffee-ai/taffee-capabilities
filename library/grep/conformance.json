@@ -1,0 +1,124 @@
+[
+  {
+    "id": "finds-matching-line",
+    "input": {
+      "pattern": "hello",
+      "files": "**/*.txt"
+    },
+    "files": {
+      "a.txt": "hello\nworld\n",
+      "b.txt": "nothing\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "a.txt:1:hello",
+      "not_contains": "b.txt",
+      "exit_code": 0
+    }
+  },
+  {
+    "id": "no-match-is-empty-not-error",
+    "input": {
+      "pattern": "absent",
+      "files": "**/*.txt"
+    },
+    "files": {
+      "a.txt": "hello\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "\"output\": \"\""
+    }
+  },
+  {
+    "id": "directory-prefix-scopes-the-search",
+    "input": {
+      "pattern": "needle",
+      "files": "in/**/*.txt"
+    },
+    "files": {
+      "in/a.txt": "needle\n",
+      "out/b.txt": "needle\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "in/a.txt:1:needle",
+      "not_contains": "out/b.txt"
+    }
+  },
+  {
+    "id": "dash-pattern-is-data",
+    "input": {
+      "pattern": "-v",
+      "files": "**/*.txt"
+    },
+    "files": {
+      "a.txt": "-v flag\n"
+    },
+    "expect": {
+      "ok": true,
+      "contains": "-v flag"
+    }
+  },
+  {
+    "id": "missing-pattern-is-an-error-result",
+    "input": {
+      "files": "*.txt"
+    },
+    "files": {
+      "a.txt": "x\n"
+    },
+    "expect": {
+      "ok": false,
+      "exit_code": 0
+    }
+  },
+  {
+    "id": "wrong-type-is-an-error-result",
+    "input": {
+      "pattern": 5,
+      "files": "*.txt"
+    },
+    "files": {
+      "a.txt": "x\n"
+    },
+    "expect": {
+      "ok": false,
+      "exit_code": 0
+    }
+  },
+  {
+    "id": "parent-directory-is-refused",
+    "input": {
+      "pattern": "x",
+      "files": "../**/*.txt"
+    },
+    "files": {
+      "a.txt": "x\n"
+    },
+    "expect": {
+      "ok": false,
+      "contains": "escapes"
+    }
+  },
+  {
+    "id": "escaping-symlink-is-refused",
+    "input": {
+      "pattern": "secret",
+      "files": "link/**/*.txt"
+    },
+    "files": {
+      "a.txt": "x\n"
+    },
+    "links": {
+      "link": "../outside"
+    },
+    "outside": {
+      "secret.txt": "secret\n"
+    },
+    "expect": {
+      "ok": false,
+      "contains": "symlink"
+    }
+  }
+]

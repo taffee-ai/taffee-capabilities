@@ -1,0 +1,20 @@
+# Failing fixture: a semantic version that is not semantic, a floating provider alias, and a bad category. Tests only.
+kind: model
+name: fixture-model
+version: 2025-06-01
+owner: fixtures-owner
+summary: A test-only model declaration with a floating provider version.
+source:
+  type: library
+  location: library/fixture-model-adapter
+requires: []
+provider:
+  name: fixture-provider
+  modelId: latest
+  modelVersion: latest
+category: cloud-ish
+licence: proprietary-fixture
+dataTerms:
+  retention: none
+  trainingUse: "no"
+  allowedDataClasses: [public]

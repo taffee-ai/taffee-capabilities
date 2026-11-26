@@ -1,0 +1,23 @@
+# Passing fixture: a model declaration. Its code identity is its adapter in library/.
+# The provider's model identifier and pinned version are data inside `provider`. Tests only.
+kind: model
+name: fixture-model
+version: 1.0.0
+owner: fixtures-owner
+summary: A test-only model declaration.
+source:
+  type: library
+  location: library/fixture-model-adapter
+requires: []
+provider:
+  name: fixture-provider
+  modelId: fixture-model
+  modelVersion: "2025-06-01"
+category: frontier
+licence: proprietary-fixture
+dataTerms:
+  retention: none
+  trainingUse: "no"
+  allowedDataClasses:
+    - public
+    - internal

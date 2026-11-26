@@ -1,0 +1,20 @@
+# Language registry (S-001 LANGUAGES.md v2). Data, not code: adding a language is an entry here,
+# plus a runner in capability/conformance.py if none of the existing runners fits.
+# toolchain is a runtime check only. It is not part of any digest.
+policy_version: 1
+languages:
+  python:
+    extensions: [".py"]
+    entry: main.py
+    runner: python
+    toolchain: [python3, "--version"]
+  typescript:
+    extensions: [".ts"]
+    entry: main.ts
+    runner: node-strip-types
+    toolchain: [node, "--version"]
+  bash:
+    extensions: [".sh"]
+    entry: main.sh
+    runner: bash
+    toolchain: [bash, "--version"]

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+
+# Generated index: rebuilt by capability-validate, never edited by hand
+index/
+
+# The registry's local store (S-018): rows, submissions, admitted code. Never committed.
+var/
+
+# Temporary files from atomic writes
+*.tmp
+
+# macOS
+.DS_Store
+
+# slop/ folders are local brainstorming only and are never committed, at any depth.
+slop/
+
+# mailbox/ — agent coordination state (maildepot). Local runtime data, never committed.
+mailbox/
+# .maildepot/ — maildepot's lib/, copied in by init.mjs. Regenerated on every init; never committed.
+.maildepot/
+
+# Local agent instructions and tool state, never committed.
+AGENTS.md
+CLAUDE.md
+.codex/

@@ -1,0 +1,27 @@
+# Label policy (S-001 §7, T-001). The label is the highest level whose conditions hold.
+# Labels are computed by capability/labels.py, never written in a manifest.
+policy_version: 2
+all_kinds:
+  Declared:
+    - manifest validates against its kind's schema
+    - digest computes (manifest_digest; code_digest for library and generated sources)
+tool:
+  Validated:
+    - Declared
+    - at least one implementation
+    - library/<name>/conformance.json exists and is valid
+    - every implementation passes every case in the conformance runner
+    - the digest of the cases is recorded in the entry's evidence as conformance:<digest>
+    - a tool with cases that fail, or that cannot be run, refuses the build (no silent downgrade)
+  Tested:
+    - Validated
+    - evidence/tools/<name>/<version>/summary.json exists and is well formed
+    - it names this tool's current identity, the current cases digest, and this policy version
+    - the test counts add up, with passed at least 1 and failed, errored and skipped all 0
+    - its fingerprint recomputes from the identity, cases digest, suite digest, policy version and environment
+    - the entry's evidence adds tests:<fingerprint>
+    - evidence that does not hold (changed tool, changed cases, bad record) leaves the tool Validated
+agent:
+  Trusted: defined in A-002; not awarded here
+model:
+  Approved: defined in M-001; not awarded here

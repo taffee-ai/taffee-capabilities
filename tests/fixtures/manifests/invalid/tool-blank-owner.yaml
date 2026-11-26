@@ -1,0 +1,16 @@
+# Failing fixture: an owner that is a placeholder. Tests only.
+kind: tool
+name: fixture-tool
+version: 1.0.0
+owner: TBD
+summary: A test-only tool with a placeholder owner.
+source:
+  type: library
+  location: library/fixture-tool
+requires: []
+spec:
+  inputSchema: {type: object}
+  readOnly: true
+  idempotent: true
+  timeoutMs: 5000
+  boundary: []

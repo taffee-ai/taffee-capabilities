@@ -1,0 +1,20 @@
+# Passing fixture: an agent declaration (minimal; subtype rules are A-003). Tests only.
+kind: agent
+name: fixture-agent
+version: 1.0.0
+owner: fixtures-owner
+summary: A test-only agent declaration.
+source:
+  type: library
+  location: library/fixture-agent
+requires:
+  - repo.read
+outcomes:
+  - summary-file-written
+tools:
+  - fixture-tool
+roles:
+  - general-reasoning
+limits:
+  turns: 5
+  minutes: 5

@@ -1,0 +1,17 @@
+# Failing fixture: a duplicate key that YAML would silently overwrite. Tests only.
+kind: tool
+name: fixture-tool
+name: other-tool
+version: 1.0.0
+owner: fixtures-owner
+summary: A test-only tool with a duplicate key.
+source:
+  type: library
+  location: library/fixture-tool
+requires: []
+spec:
+  inputSchema: {type: object}
+  readOnly: true
+  idempotent: true
+  timeoutMs: 5000
+  boundary: []

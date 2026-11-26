@@ -1,0 +1,33 @@
+# Declared with no implementations. Workbench is reference only; T-001 creates the library/ implementations.
+kind: tool
+name: graph-query
+version: 1.0.0
+owner: capabilities-tools-owner
+summary: "Read a repository code graph: resolve a commit, find symbols, walk callers, callees and dependencies."
+implementations: []
+requires:
+  - context.read
+spec:
+  inputSchema:
+    type: object
+    additionalProperties: false
+    properties:
+      repoId:
+        type: string
+      commitSHA:
+        type: string
+        description: Full Git SHA. Omit for the newest ingested commit.
+      operation:
+        type: string
+        enum: [resolve, find_symbol, get_callers, get_callees, get_dependencies]
+      symbol:
+        type: string
+      limit:
+        type: integer
+        minimum: 1
+        maximum: 20
+    required: [repoId, operation]
+  readOnly: true
+  idempotent: false
+  timeoutMs: 5000
+  boundary: []

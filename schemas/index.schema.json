@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taffee.local/capabilities/schemas/index.schema.json",
+  "title": "Capability index (S-001 \u00a78)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "policy_version",
+    "inputs_digest",
+    "entries",
+    "index_digest"
+  ],
+  "properties": {
+    "schema": {
+      "const": "capability-index/1"
+    },
+    "policy_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "inputs_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "index_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "kind",
+          "version",
+          "manifest_digest",
+          "label",
+          "evidence",
+          "manifest"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "kind": {
+            "enum": [
+              "tool",
+              "agent",
+              "model"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+          },
+          "manifest_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "code_digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "label": {
+            "enum": [
+              "Declared",
+              "Validated",
+              "Tested",
+              "Trusted",
+              "Approved"
+            ]
+          },
+          "source": {
+            "type": "object"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "manifest": {
+            "type": "object"
+          },
+          "identity": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "implementations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "language",
+                "code_digest",
+                "entry"
+              ],
+              "properties": {
+                "language": {
+                  "type": "string"
+                },
+                "code_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "entry": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._-]+$"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

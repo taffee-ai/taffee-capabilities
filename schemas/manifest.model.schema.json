@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taffee.local/capabilities/schemas/manifest.model.schema.json",
+  "title": "Model capability manifest (S-001 §5; approval and route rules are M-001 and M-002)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "name", "version", "owner", "summary", "source", "requires", "provider", "category", "licence", "dataTerms"],
+  "properties": {
+    "kind": { "const": "model" },
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$" },
+    "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+    "owner": { "type": "string", "pattern": "\\S", "maxLength": 120 },
+    "summary": { "type": "string", "pattern": "\\S", "maxLength": 200 },
+    "source": { "$ref": "#/$defs/source" },
+    "requires": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "modelId", "modelVersion"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$" },
+        "modelId": { "type": "string", "pattern": "^(?!latest$).+$", "minLength": 1, "maxLength": 200 },
+        "modelVersion": { "type": "string", "pattern": "^(?!latest$)[A-Za-z0-9][A-Za-z0-9._-]{0,63}$" }
+      }
+    },
+    "category": { "enum": ["frontier", "public", "private-local"] },
+    "licence": { "type": "string", "pattern": "\\S", "maxLength": 200 },
+    "dataTerms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["retention", "trainingUse", "allowedDataClasses"],
+      "properties": {
+        "retention": { "type": "string", "pattern": "^(none|unknown|days:[0-9]+)$" },
+        "trainingUse": { "enum": ["yes", "no", "unknown"] },
+        "allowedDataClasses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "location"],
+          "properties": {
+            "type": { "const": "library" },
+            "location": { "type": "string", "pattern": "^library/[a-z][a-z0-9-]{1,63}$" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "location"],
+          "properties": {
+            "type": { "const": "generated" },
+            "location": { "type": "string", "pattern": "^library/generated/[a-z][a-z0-9-]{1,63}$" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "repository", "commit", "path", "tree_sha256"],
+          "properties": {
+            "type": { "const": "external" },
+            "repository": { "type": "string", "pattern": "^https://" },
+            "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "path": { "type": "string", "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$" },
+            "tree_sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+          }
+        }
+      ]
+    }
+  }
+}

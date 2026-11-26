@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taffee.local/capabilities/schemas/manifest.tool.schema.json",
+  "title": "Tool capability manifest (S-001 LANGUAGES.md v2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "name",
+    "version",
+    "owner",
+    "summary",
+    "requires",
+    "implementations",
+    "spec"
+  ],
+  "properties": {
+    "kind": {
+      "const": "tool"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,63}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "owner": {
+      "type": "string",
+      "pattern": "\\S",
+      "maxLength": 120
+    },
+    "summary": {
+      "type": "string",
+      "pattern": "\\S",
+      "maxLength": 200
+    },
+    "requires": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_.-]*$"
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputSchema",
+        "readOnly",
+        "idempotent",
+        "timeoutMs",
+        "boundary"
+      ],
+      "properties": {
+        "inputSchema": {
+          "type": "object"
+        },
+        "readOnly": {
+          "type": "boolean"
+        },
+        "idempotent": {
+          "type": "boolean"
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 600000
+        },
+        "boundary": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "postconditions": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type",
+                  "value"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "max_bytes"
+                  },
+                  "value": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65536
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type",
+                  "pattern"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "each_line_matches"
+                  },
+                  "pattern": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "allow_empty": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "sandbox": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "filesystem"
+          ],
+          "properties": {
+            "memoryMb": {
+              "type": "integer",
+              "minimum": 16,
+              "maximum": 8192
+            },
+            "outputBytes": {
+              "type": "integer",
+              "minimum": 64,
+              "maximum": 65536
+            },
+            "stdinBytes": {
+              "type": "integer",
+              "minimum": 64,
+              "maximum": 1048576
+            },
+            "filesystem": {
+              "enum": [
+                "none",
+                "read-root",
+                "write-root"
+              ]
+            },
+            "network": {
+              "const": "none"
+            },
+            "env": {
+              "type": "array",
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Z_][A-Z0-9_]{0,63}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "implementations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "language",
+          "location"
+        ],
+        "properties": {
+          "language": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,31}$"
+          },
+          "location": {
+            "type": "string",
+            "pattern": "^library/(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._/-]+$"
+          }
+        }
+      }
+    }
+  }
+}

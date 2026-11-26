@@ -1,0 +1,31 @@
+# 1.2.0 (S-009): declares postconditions. 1.1.0 added the Python implementation (T-001); 1.0.0 was declared with none. Workbench is reference only.
+kind: tool
+name: grep
+version: 1.2.0
+owner: capabilities-tools-owner
+summary: "Search file contents for a text pattern, scoped by a file glob."
+implementations:
+  - language: python
+    location: library/grep/python
+requires:
+  - repo.read
+spec:
+  inputSchema:
+    type: object
+    additionalProperties: false
+    properties:
+      pattern:
+        type: string
+      files:
+        type: string
+    required: [pattern, files]
+  readOnly: true
+  idempotent: true
+  timeoutMs: 5000
+  boundary: []
+  postconditions:
+    - type: max_bytes
+      value: 25000
+    - type: each_line_matches
+      pattern: '.+:[0-9]+:.*|\[truncated: output exceeded [0-9]+ bytes\]'
+      allow_empty: true

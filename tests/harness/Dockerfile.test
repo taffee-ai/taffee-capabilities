@@ -1,0 +1,29 @@
+# Test images for this repository. Two targets:
+#   base     Python 3.12, git, Node 22 (TypeScript runs with --experimental-strip-types, Node 22.6+), the pinned dependencies. Runs the suite
+#            and is also the image the container sandbox runs tools in.
+#   harness  base plus the docker CLI, for the container tests, which start sibling containers through the
+#            host's Docker socket.
+# Build (from the repository root):
+#   docker build -f tests/harness/Dockerfile.test --target base    -t taffee-cap-base:dev .
+#   docker build -f tests/harness/Dockerfile.test --target harness -t taffee-cap-harness:dev .
+# Run the whole suite, container tests included:
+#   docker run --rm \
+#     -e TAFFEE_SANDBOX_IMAGE=taffee-cap-base:dev -e TAFFEE_SANDBOX_TMP=$HOME/work/sbxtmp-cap \
+#     -v /var/run/docker.sock:/var/run/docker.sock \
+#     -v $HOME/work/sbxtmp-cap:$HOME/work/sbxtmp-cap -v $PWD:$PWD -w $PWD \
+#     taffee-cap-harness:dev python -m unittest discover -s tests
+# TAFFEE_SANDBOX_TMP must have the same absolute path on the host and in the harness.
+FROM node:22.11.0-bookworm-slim AS node
+FROM docker:28.1.1-cli AS dockercli
+
+FROM python:3.12-slim AS base
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+RUN pip install --no-cache-dir pyyaml==6.0.2 jsonschema==4.23.0 cryptography==43.0.3 google-re2==1.1.20251105 \
+    && python -c "import yaml, jsonschema, cryptography, re2; print('deps ok')" && node --version
+ENV PYTHONDONTWRITEBYTECODE=1
+
+FROM base AS harness
+COPY --from=dockercli /usr/local/bin/docker /usr/local/bin/docker
+RUN docker --version

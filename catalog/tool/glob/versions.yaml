@@ -1,0 +1,9 @@
+versions:
+  - version: 1.0.0
+    identity: sha256:223efb0108a206211840985974a6b3690e37c4fb571541e330c79571c41bb9bf
+  - version: 1.1.0
+    identity: sha256:c48a42abcd0599281673717bd2371f0bd3646389135d9e988132a95f7bb0b020
+  - version: 1.2.0
+    identity: sha256:366512f4c4f522446fa1ccf9f115e6d3f651bf0b226d90c6c15bc788a625795b
+  - version: 1.3.0
+    identity: sha256:f098fb93e2152e5e680ba479a58cdb44a9818c4b141e699e907438bfb292d7e5

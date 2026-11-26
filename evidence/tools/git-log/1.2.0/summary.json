@@ -1,0 +1,31 @@
+{
+  "cases_digest": "sha256:09424d8ff517ef304988468a91c7c5ee87bea7faf76407e5ca88b38c01ecc958",
+  "environment": {
+    "arch": "x86_64",
+    "find": "find (GNU findutils) 4.10.0",
+    "git": "git version 2.47.3",
+    "grep": "grep (GNU grep) 3.11",
+    "os": "Linux",
+    "python": "3.12.15"
+  },
+  "evidence_digest": "sha256:08900e08754d759c82ab686dcb815f468fb77a64bf353a7071a175c5ab0b8d61",
+  "fingerprint": "sha256:07363fb2a6f932f5d565f0e4c1f9fb5cc988d71b772491ca969213e83dda99fb",
+  "identity": "sha256:1d8c9d8b5c76b6a912908521c297444f5d6ddbb2abb14556c41447d3c0c71b75",
+  "log_digest": "sha256:4e8add16ee9746ef0ea9fcff9b99680dce54fe95ce99720db0d4f7601c2dfb3a",
+  "name": "git-log",
+  "policy_version": 2,
+  "schema": "capability-evidence/1",
+  "suite": {
+    "digest": "sha256:c37856de7bfcf839c48dfc2789b5244c66487f8d0e3a53902eea59cd9333f346",
+    "path": "tests/test_tools_t001.py"
+  },
+  "tests": {
+    "errors": 0,
+    "failed": 0,
+    "passed": 46,
+    "run": 46,
+    "skipped": 0,
+    "skipped_reasons": []
+  },
+  "version": "1.2.0"
+}

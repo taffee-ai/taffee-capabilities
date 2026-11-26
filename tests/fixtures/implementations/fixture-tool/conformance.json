@@ -1,0 +1,6 @@
+[
+  {"id": "double-three", "input": {"n": 3},
+   "expect": {"ok": true, "contains": "\"double\": 6", "json_key": "double", "exit_code": 0}},
+  {"id": "double-zero-not-error", "input": {"n": 0},
+   "expect": {"ok": true, "not_contains": "error", "json_key": "lang"}}
+]

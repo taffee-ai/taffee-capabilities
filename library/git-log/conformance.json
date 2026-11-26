@@ -1,0 +1,114 @@
+[
+  {
+    "id": "most-recent-commits-first",
+    "input": {
+      "n": 3
+    },
+    "files": {
+      "readme.txt": "x\n"
+    },
+    "git": {
+      "commits": 5
+    },
+    "expect": {
+      "ok": true,
+      "contains": "commit number 4",
+      "not_contains": "commit number 1",
+      "exit_code": 0
+    }
+  },
+  {
+    "id": "n-larger-than-history-returns-what-exists",
+    "input": {
+      "n": 50
+    },
+    "files": {
+      "readme.txt": "x\n"
+    },
+    "git": {
+      "commits": 2
+    },
+    "expect": {
+      "ok": true,
+      "contains": "commit number 0"
+    }
+  },
+  {
+    "id": "empty-repository-is-empty-output",
+    "input": {
+      "n": 3
+    },
+    "files": {
+      "readme.txt": "x\n"
+    },
+    "git": {
+      "commits": 0
+    },
+    "expect": {
+      "ok": true,
+      "contains": "\"output\": \"\""
+    }
+  },
+  {
+    "id": "not-a-repository-is-an-error-result",
+    "input": {
+      "n": 3
+    },
+    "files": {
+      "readme.txt": "x\n"
+    },
+    "expect": {
+      "ok": false,
+      "contains": "git log failed",
+      "exit_code": 0
+    }
+  },
+  {
+    "id": "n-zero-is-refused",
+    "input": {
+      "n": 0
+    },
+    "files": {
+      "readme.txt": "x\n"
+    },
+    "git": {
+      "commits": 1
+    },
+    "expect": {
+      "ok": false,
+      "contains": "whole number"
+    }
+  },
+  {
+    "id": "n-above-one-hundred-is-refused",
+    "input": {
+      "n": 101
+    },
+    "files": {
+      "readme.txt": "x\n"
+    },
+    "git": {
+      "commits": 1
+    },
+    "expect": {
+      "ok": false,
+      "contains": "whole number"
+    }
+  },
+  {
+    "id": "n-as-a-string-is-refused",
+    "input": {
+      "n": "3"
+    },
+    "files": {
+      "readme.txt": "x\n"
+    },
+    "git": {
+      "commits": 1
+    },
+    "expect": {
+      "ok": false,
+      "contains": "whole number"
+    }
+  }
+]

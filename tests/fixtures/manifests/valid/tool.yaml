@@ -1,0 +1,23 @@
+# Passing fixture: a tool with one implementation (python). Tests only.
+kind: tool
+name: fixture-tool
+version: 1.0.0
+owner: fixtures-owner
+summary: A test-only tool used to exercise the manifest schema.
+implementations:
+  - language: python
+    location: library/fixture-tool/python
+requires:
+  - repo.read
+spec:
+  inputSchema:
+    type: object
+    properties:
+      n:
+        type: integer
+        minimum: 1
+    required: [n]
+  readOnly: true
+  idempotent: true
+  timeoutMs: 5000
+  boundary: []

@@ -1,0 +1,29 @@
+# 1.3.0: the postcondition pattern is rewritten without a lookahead so it matches in linear time under RE2 ([^/].* replaces (?!/).+). 1.2.0 declared postconditions (S-009); 1.1.0 added the Python implementation (T-001); 1.0.0 was declared with none. Workbench is reference only.
+kind: tool
+name: glob
+version: 1.3.0
+owner: capabilities-tools-owner
+summary: "Find files by name or shape inside the repository."
+implementations:
+  - language: python
+    location: library/glob/python
+requires:
+  - repo.read
+spec:
+  inputSchema:
+    type: object
+    additionalProperties: false
+    properties:
+      pattern:
+        type: string
+    required: [pattern]
+  readOnly: true
+  idempotent: true
+  timeoutMs: 5000
+  boundary: []
+  postconditions:
+    - type: max_bytes
+      value: 25000
+    - type: each_line_matches
+      pattern: '[^/].*|\[truncated: output exceeded [0-9]+ bytes\]'
+      allow_empty: true
