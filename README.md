@@ -14,14 +14,14 @@ The registry runs inside your own network. Things to know when you install it:
 - **The revocation feed is a development stand-in.** It is a local file the deployment signs itself.
 - **Tested on Linux and on Docker Desktop for macOS.** Not yet on Docker Desktop for Windows. On Docker Desktop for macOS, file locks do not work on the registry's data folder, so only the registry may open its store (see [deploy/README.md](deploy/README.md)).
 
-What was tested, what was found and what is not yet verified: [07_VERIFICATION.md](docs/design/shared/S-018_registry_store_admission/07_VERIFICATION.md).
+What was tested, what was found and what is not yet verified: [07_VERIFICATION.md](docs/design/shared/S-018_registry_store_admission/07_VERIFICATION.md). To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## What is here
 
 - **Manifests and validators.** JSON schemas for tool, agent and model manifests, content digests for both the declaration and the code, and a validator that rebuilds the signed index.
 - **Labels from evidence.** A label (Declared, Validated, then Tested, Trusted or Approved) is a pure function of the manifest, the evidence and a versioned label policy. Labels are never set by hand.
 - **Revocation.** A signed, hash-chained feed. If the feed cannot be verified, the registry refuses to answer.
-- **The registry service (S-018).** A pluggable store (SQLite with FTS5, or in-memory) with signed rows. An admission pipeline builds and tests agent-written tools in a container sandbox, with automatic or manual approval. It serves a `/v2` REST API and a read-only MCP server.
+- **The registry service (S-018).** A pluggable store (SQLite with FTS5, or in-memory) with signed rows. An admission pipeline builds and tests agent-written tools in a container sandbox, with automatic or manual approval. It serves a `/v2` REST API and a read-only MCP server, and runs tools for callers in the container sandbox (`POST /v2/call`, with idempotent `call_id`).
 - **Built-in tools.** `grep`, `glob`, `git-log` and `unawaited-async`, each with conformance cases and committed evidence.
 - **`capctl verify`.** One command that re-checks a capability version against the catalog from local files, without running its code.
 
