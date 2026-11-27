@@ -47,7 +47,7 @@ Out of scope (govsec, or cross-repo, open):
 
 ## 5. Genesis, feed entry and checkpoint shape
 
-Genesis: the client starts at `seq` 0 with head hash `GENESIS` = `sha256:` plus the SHA-256 of the UTF-8 bytes of `aicore-revocation-genesis/1`. The first entry is `seq` 1 with `prev` = `GENESIS`. Independent clients therefore agree on the first link.
+Genesis: the client starts at `seq` 0 with head hash `GENESIS` = `sha256:` plus the SHA-256 of the UTF-8 bytes of `taffee-revocation-genesis/1`. The first entry is `seq` 1 with `prev` = `GENESIS`. Independent clients therefore agree on the first link.
 
 Entry, one JSON object per line:
 

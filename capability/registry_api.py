@@ -7,6 +7,9 @@ queries are bounded before they are parsed (REG-API-5). The S-008 /v1 service is
 
 Submissions are processed by one background worker, so `POST /v2/submissions` answers 202 at once and the
 submitter polls `GET /v2/submissions/{id}`.
+
+S-019: `POST /v2/call` runs a tool for the caller in the container sandbox and answers with its result. It is on
+only when the service is given a `ToolCaller` (see `tool_call.py`).
 """
 
 from __future__ import annotations
@@ -20,12 +23,17 @@ from urllib.parse import parse_qs, unquote, urlsplit
 from .admission import OPEN_STATES, AdmissionError
 from .admission_queue import AdmissionQueue
 from .authz import AdmissionAuthorizer
+from .calltime import CallError
 from .canon import canonical_bytes
 from .registry import RegistryError
 from .rows import sign_checkpoint
+from .sandbox import SandboxUnavailable
+from .call_replies import request_digest
+from .tool_call import CallRefused, CallTracker
 
 LOG = logging.getLogger("capability.registry_api")
 MAX_BODY = 4096
+MAX_CALL_BODY = 1024 * 1024 + 8192  # the largest stdinBytes a tool may declare, plus the request around the input
 MAX_QUERY = 2048
 NAME = re.compile(r"[a-z][a-z0-9-]{1,63}")
 SID = re.compile(r"sub-[0-9a-f]{20}")
@@ -46,13 +54,25 @@ MESSAGES = {
     "NoImplementation": "no implementation in the requested languages",
     "MethodNotAllowed": "method not allowed",
     "AuthorizerUnavailable": "the authorization decision could not be made; the request is refused",
-    "Busy": "admission is at capacity; retry after the Retry-After interval",
+    "Busy": "the service is at capacity; retry after the Retry-After interval",
+    "ValidationFailed": "the input does not match the tool's declared schema",
+    "PostconditionFailed": "the tool's output failed its declared postconditions",
+    "SandboxUnavailable": "the tool declares limits this service cannot enforce, so it is not run",
+    "WorkspaceRequired": "the tool reads or writes its root; name a workspace",
+    "WorkspaceNotFound": "no such workspace",
+    "WorkspaceUnavailable": "this service has no workspace root configured",
+    "CallsDisabled": "this service does not run tools",
+    "CallIdConflict": "this call_id was already used for a different request",
+    "InProgress": "a call with this call_id is still running; retry after the Retry-After interval",
     "Unexpected": "the service could not complete the request",
 }
 STATUS = {"NotFound": 404, "Ambiguous": 409, "BelowLabel": 409, "InvalidRange": 400, "InvalidRequest": 400,
           "TooLarge": 413, "Unauthenticated": 401, "Forbidden": 403, "InvalidState": 409, "Revoked": 410,
           "RevocationStale": 503, "VersionConflict": 409, "IntegrityError": 500, "NoImplementation": 404,
-          "MethodNotAllowed": 405, "AuthorizerUnavailable": 503, "Busy": 429, "Unexpected": 500}
+          "MethodNotAllowed": 405, "AuthorizerUnavailable": 503, "Busy": 429, "ValidationFailed": 422,
+          "PostconditionFailed": 502, "SandboxUnavailable": 409, "WorkspaceRequired": 400,
+          "WorkspaceNotFound": 404, "WorkspaceUnavailable": 409, "CallsDisabled": 404, "CallIdConflict": 409,
+          "InProgress": 409, "Unexpected": 500}
 SUBMISSION_VIEW = ("id", "state", "name", "version", "identity", "submitted_by", "submitted_at", "problems",
                    "decided_by", "decided_at", "row_seq", "evidence", "duplicate")
 RESOLVE_VIEW = ("name", "kind", "version", "label", "manifest_digest", "identity", "language", "code_digest",
@@ -60,20 +80,42 @@ RESOLVE_VIEW = ("name", "kind", "version", "label", "manifest_digest", "identity
 
 
 class _Reply(Exception):
-    def __init__(self, code: str, status: int | None = None):
-        self.code, self.status = code, status or STATUS[code]
+    def __init__(self, code: str, status: int | None = None, extra: dict | None = None):
+        self.code, self.status, self.extra = code, status or STATUS[code], extra or {}
+
+
+def error_reply(exc: BaseException) -> tuple[int, dict]:
+    """The closed (status, body) for an exception raised while answering a request."""
+    if isinstance(exc, _Reply):
+        return exc.status, {"code": exc.code, "message": MESSAGES[exc.code], **exc.extra}
+    if isinstance(exc, CallRefused):
+        return STATUS[exc.code], {"code": exc.code, "message": MESSAGES[exc.code]}
+    if isinstance(exc, CallError):  # problems name fields and checks only; they never carry a value
+        return STATUS[exc.code], {"code": exc.code, "message": MESSAGES[exc.code],
+                                  "problems": [{"field": p.field, "message": p.message} for p in exc.problems]}
+    if isinstance(exc, SandboxUnavailable):
+        return STATUS[exc.code], {"code": exc.code, "message": MESSAGES[exc.code], "unmet": list(exc.unmet)}
+    if isinstance(exc, (RegistryError, AdmissionError)):
+        code = exc.code if exc.code in STATUS else "Unexpected"
+        if code == "Unexpected":
+            LOG.error("unexpected %s code %r", type(exc).__name__, exc.code)
+        return STATUS[code], {"code": code, "message": MESSAGES[code]}
+    LOG.error("unexpected failure", exc_info=exc)
+    return 500, {"code": "Unexpected", "message": MESSAGES["Unexpected"]}
 
 
 class RegistryService:
     def __init__(self, registry, admission, authorizer, private_key=None, *, queue: AdmissionQueue | None = None,
-                 max_bundle_bytes=None, process_inline=False):
+                 max_bundle_bytes=None, process_inline=False, caller=None):
         """`queue` runs admission in the background (a default AdmissionQueue is started when none is given);
-        `process_inline` processes each submission inside its request instead (tests only)."""
+        `process_inline` processes each submission inside its request instead (tests only). `caller`, a
+        `tool_call.ToolCaller`, turns on `POST /v2/call`; without it the route answers CallsDisabled."""
         if not isinstance(authorizer, AdmissionAuthorizer):
             raise ValueError("an AdmissionAuthorizer is required; there is no default")
         self._registry, self._admission, self._authz, self._key = registry, admission, authorizer, private_key
         self.max_bundle_bytes = max_bundle_bytes or admission.limits.max_bundle_bytes
         self._inline = process_inline
+        self._caller = caller
         self.queue = None if process_inline else (queue or AdmissionQueue(admission).start())
 
     def drain(self, timeout=None):
@@ -86,24 +128,51 @@ class RegistryService:
 
     # -- the transport-free core --
     def handle(self, method: str, target: str, headers: dict, body: bytes = b"") -> tuple[int, dict, bytes]:
+        extra_headers = {}
         try:
-            status, payload = self._dispatch(method, target, {k.lower(): v for k, v in headers.items()}, body)
-        except _Reply as reply:
-            status, payload = reply.status, {"code": reply.code, "message": MESSAGES[reply.code]}
-        except (RegistryError, AdmissionError) as exc:
-            code = exc.code if exc.code in STATUS else "Unexpected"
-            if code == "Unexpected":
-                LOG.error("unexpected %s code %r", type(exc).__name__, exc.code)
-            status, payload = STATUS[code], {"code": code, "message": MESSAGES[code]}
-        except Exception:
-            LOG.exception("unexpected failure")
-            status, payload = 500, {"code": "Unexpected", "message": MESSAGES["Unexpected"]}
+            result = self._dispatch(method, target, {k.lower(): v for k, v in headers.items()}, body)
+            status, payload = result[0], result[1]
+            if len(result) == 3:
+                extra_headers = result[2]
+        except Exception as exc:
+            status, payload = error_reply(exc)
         out = {"Content-Type": "application/json", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"}
         if status == 503:
             out["Retry-After"] = "30"
         elif status == 429:
             out["Retry-After"] = "10"
+        elif payload.get("code") == "InProgress":
+            out["Retry-After"] = "5"
+        out.update(extra_headers)
         return status, out, canonical_bytes(payload)
+
+    def _call(self, body, principal):
+        """POST /v2/call. With a reply store, call_id is idempotent per caller: the first call that runs the tool
+        takes it, a retry of the same request gets the stored reply (held until the first call finishes, if it is
+        still running), a different request is CallIdConflict, and a call refused before the tool ran gives the
+        call_id back."""
+        caller = self._caller
+        request = self._json(body)
+        if caller.replies is None:
+            return 200, caller.call(request, self._callable(principal))
+        req = caller.parse(request)
+        claim = caller.replies.begin(principal.id, req["call_id"], request_digest(req), hold_s=caller.replies.hold_s)
+        if claim[0] == "replay":
+            return claim[1], claim[2], {"X-Call-Replayed": "true"}
+        if claim[0] == "conflict":
+            raise _Reply("CallIdConflict")
+        if claim[0] == "in_progress":
+            raise _Reply("InProgress")
+        tracker = CallTracker()
+        try:
+            status, payload = 200, caller.call(request, self._callable(principal), tracker)
+        except Exception as exc:
+            status, payload = error_reply(exc)
+        if tracker.ran:
+            caller.replies.finish(principal.id, req["call_id"], status, payload)
+        else:
+            caller.replies.release(principal.id, req["call_id"])
+        return status, payload
 
     def _principal(self, headers):
         try:
@@ -113,6 +182,14 @@ class RegistryService:
         if principal is None:
             raise _Reply("Unauthenticated")
         return principal
+
+    def _callable(self, principal):
+        def may_call(ref):
+            try:
+                return bool(self._authz.may_call(principal, ref))
+            except Exception:
+                raise _Reply("AuthorizerUnavailable")
+        return may_call
 
     def _visible(self, principal):
         def visible(ref):
@@ -197,6 +274,10 @@ class RegistryService:
             match = reg.resolve(req["name"], req.get("range", "*"), "tool", req.get("min_label", "Declared"),
                                 languages, visible)
             return 200, {key: match[key] for key in RESOLVE_VIEW}
+        if path == ["call"] and method == "POST":
+            if self._caller is None:
+                raise _Reply("CallsDisabled")
+            return self._call(body, principal)
         if path == ["checkpoint"] and method == "GET":
             if self._key is None:
                 raise _Reply("NotFound")
@@ -255,7 +336,9 @@ class _Handler(BaseHTTPRequestHandler):
         body = b""
         if self.command == "POST":
             length = self.headers.get("Content-Length", "0")
-            limit = self.service.max_bundle_bytes if urlsplit(self.path).path == "/v2/submissions" else MAX_BODY
+            route = urlsplit(self.path).path
+            limit = (self.service.max_bundle_bytes if route == "/v2/submissions"
+                     else MAX_CALL_BODY if route == "/v2/call" else MAX_BODY)
             if not length.isdigit():
                 return self._error("InvalidRequest")
             if int(length) > limit:

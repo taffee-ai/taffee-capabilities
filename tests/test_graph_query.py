@@ -90,7 +90,7 @@ class SchemaTest(unittest.TestCase):
             good(commitSHA=""), {"repoId": "r", "operation": "find_symbol"}, {"repoId": "r", "operation": "get_callers"},
             {"repoId": "r", "operation": "get_callees", "symbol": "  "}, good(symbol="x" * 1025),
             good(symbol="bad\nline"), {"repoId": "bad\tid", "operation": "resolve"}, good(commitSHA="a" * 40 + "\n"),
-            {"repoId": "\ufeff", "operation": "resolve"},  # JS trim() removes U+FEFF (review 2a8df5d1, finding 1.2)
+            {"repoId": "\ufeff", "operation": "resolve"},  # JS trim() removes U+FEFF
             {"repoId": "\u00a0\u2003\u3000", "operation": "resolve"},
         ]
         both_ok = [
@@ -220,7 +220,7 @@ class ReplyCheckTest(unittest.TestCase):
         self.assertEqual(self.failure(big), "OutputTooLarge")
 
     def test_a_lone_surrogate_is_a_bad_reply_not_an_outage(self):
-        """review 2a8df5d1 finding 1.1: it used to crash with UnicodeEncodeError and be reported as ContextUnavailable."""
+        """It used to crash with UnicodeEncodeError and be reported as ContextUnavailable."""
         for text in ('{"results": ["\\ud800"], "truncated": false}', '{"results": [], "truncated": false, "\\udc00": 1}',
                      '{"results": ["' + "\ud800" + '"]}'):
             with self.subTest(reply=text[:30]):
@@ -272,7 +272,7 @@ class ClientFailureTest(unittest.TestCase):
 
 
 class CredentialTest(unittest.TestCase):
-    """review 49043e3b: a credential is never read from the tool's stdin; how a brokered one arrives is undefined."""
+    """A credential is never read from the tool's stdin; how a brokered one arrives is undefined."""
 
     def test_the_client_interface_has_no_credential_parameter(self):
         import inspect

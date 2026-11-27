@@ -21,6 +21,7 @@ from pathlib import Path
 from .canon import canonical_bytes
 from .digest import DigestError, manifest_digest, tree_digest
 from .implementations import tool_identity
+from .manifest import tool_effect
 from .registry import KINDS, LABEL_ORDER, RegistryError
 from .resolve import in_range
 from .rows import RowError, verify_row
@@ -139,7 +140,8 @@ class StoreRegistry:
         return {"name": row["name"], "kind": row["kind"], "version": row["version"], "label": row["label"],
                 "summary": manifest["summary"], "identity": row["identity"],
                 "languages": sorted(i["language"] for i in row["implementations"]),
-                "requires": list(manifest.get("requires", [])), "tool_definition": tool_definition(row)}
+                "requires": list(manifest.get("requires", [])), "effect": tool_effect(manifest["spec"]),
+                "tool_definition": tool_definition(row)}
 
     # -- queries --
     def list(self, kind="tool", min_label="Declared", cursor=None, limit=None, visible=None) -> dict:
@@ -219,7 +221,7 @@ class StoreRegistry:
             "manifest_digest": row["manifest_digest"], "owner": manifest["owner"], "evidence": list(row["evidence"]),
             "admitted_at": row["admitted_at"], "source_type": row["source"]["type"],
             "spec": {key: copy.deepcopy(spec[key]) for key in
-                     ("inputSchema", "postconditions", "idempotent", "readOnly", "timeoutMs") if key in spec},
+                     ("inputSchema", "postconditions", "idempotent", "readOnly", "effect", "timeoutMs") if key in spec},
         })
         return view
 

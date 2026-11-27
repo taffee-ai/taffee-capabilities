@@ -4,7 +4,8 @@
 #   TAFFEE_RUN=... docker compose -f deploy/compose.yaml --profile smoke run --rm smoke
 #
 # TAFFEE_RUN holds everything that must survive a restart: the store, the library export if on, the admission key,
-# the dev feed and the sandbox scratch folder. It is mounted at the same absolute path in every container,
+# the dev feed, the sandbox scratch folder, the call records and the workspaces callers name in POST /v2/call
+# (TAFFEE_RUN/workspaces/<name>: a caller on this host puts the files a tool should see there). It is mounted at the same absolute path in every container,
 # because the registry starts sandbox containers through the host's Docker socket and they mount those paths.
 #
 # DEVELOPMENT ONLY: the authorizer trusts the X-Dev-Principal header, so the port is published on the host's
@@ -56,6 +57,8 @@ services:
       - --approval=${TAFFEE_APPROVAL:-auto}
       - --approver=approver:dev
       - --workers=${TAFFEE_WORKERS:-4}
+      - --workspaces=${TAFFEE_RUN}/workspaces
+      - --call-workers=${TAFFEE_CALL_WORKERS:-4}
     ports: ["127.0.0.1:${TAFFEE_PORT:-8090}:8090"]
     volumes:
       - "${TAFFEE_RUN}:${TAFFEE_RUN}"

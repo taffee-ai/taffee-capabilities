@@ -133,9 +133,24 @@ def _placeholder_errors(manifest: dict) -> list[str]:
     return errors
 
 
+EFFECTS = ("read-only", "reversible", "irreversible")
+
+
+def tool_effect(spec: dict) -> str:
+    """T-008: the effect of a call: the declared `spec.effect`, or, when absent, read-only for a tool declared
+    readOnly and irreversible for any other (the safe default: what is not declared undoable is not)."""
+    effect = spec.get("effect")
+    if effect in EFFECTS:
+        return effect
+    return "read-only" if spec.get("readOnly") is True else "irreversible"
+
+
 def _spec_errors(spec: dict) -> list[str]:
-    """Checks a JSON Schema cannot express: the input schema is a schema, and every pattern compiles (S-009)."""
+    """Checks a JSON Schema cannot express: the input schema is a schema, every pattern compiles (S-009), and a
+    declared effect agrees with readOnly (T-008)."""
     errors = []
+    if "effect" in spec and (spec["effect"] == "read-only") != (spec.get("readOnly") is True):
+        errors.append("spec.effect: read-only exactly when spec.readOnly is true")
     try:
         Draft202012Validator.check_schema(spec["inputSchema"])
     except Exception as exc:  # jsonschema raises SchemaError; any failure means the schema cannot be used

@@ -25,8 +25,9 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from capability.canon import canonical_bytes
 
-# Wire constant shared with the feed publisher (taffee-governance pkg/feed). Changing it breaks every existing feed.
-GENESIS_LABEL = b"aicore-revocation-genesis/1"
+# Wire constant shared with the feed publisher (taffee-governance pkg/feed): both sides must use the same label.
+# Changing it invalidates every existing feed, which must then be recreated.
+GENESIS_LABEL = b"taffee-revocation-genesis/1"
 GENESIS = "sha256:" + hashlib.sha256(GENESIS_LABEL).hexdigest()
 
 KINDS = ("tool", "agent", "model")

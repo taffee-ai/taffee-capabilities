@@ -50,7 +50,7 @@ def base_fields(target=None):
 
 class GenesisTest(unittest.TestCase):
     def test_genesis_is_sha256_of_the_labelled_bytes(self):
-        want = "sha256:" + hashlib.sha256(b"aicore-revocation-genesis/1").hexdigest()
+        want = "sha256:" + hashlib.sha256(b"taffee-revocation-genesis/1").hexdigest()
         self.assertEqual(GENESIS, want)
 
 

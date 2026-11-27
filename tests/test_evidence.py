@@ -322,7 +322,7 @@ class ApprovedSuiteListTest(unittest.TestCase):
 
 
 class EvidenceToolFilterTest(unittest.TestCase):
-    """capability.evidence --tool (review 417e8a3e): it selects, it leaves the rest untouched, and it never selects nothing."""
+    """capability.evidence --tool: it selects, it leaves the rest untouched, and it never selects nothing."""
 
     def setUp(self):
         import contextlib
@@ -441,7 +441,7 @@ class EvidenceToolFilterTest(unittest.TestCase):
             shutil.copytree(Path(__file__).resolve().parent.parent / folder, root / folder)
         copy_suite(root)
         code, out, _ = self.run_main("check", str(root), "--tool", "glob")
-        self.assertEqual((code, out.strip()), (0, "glob@1.3.0: evidence holds"))
+        self.assertEqual((code, out.strip()), (0, "glob@1.4.0: evidence holds"))
         code, _, err = self.run_main("check", str(root), "--tool", "globb")
         self.assertEqual(code, 2)
         self.assertIn("Eligible: git-log, glob, grep, unawaited-async", err)
@@ -481,8 +481,8 @@ class RealEvidenceTest(unittest.TestCase):
             main.write_text(main.read_text(encoding="utf-8") + "\n# changed\n", encoding="utf-8")
             code, text = self.run_main("check", str(root))
         self.assertEqual(code, 1)
-        self.assertIn("glob@1.3.0: evidence is for a different identity", text)
-        self.assertIn("grep@1.2.0: evidence holds", text)
+        self.assertIn("glob@1.4.0: evidence is for a different identity", text)
+        self.assertIn("grep@1.3.0: evidence holds", text)
 
     def test_the_records_show_a_clean_run_of_the_tool_suite(self):
         root = Path(__file__).resolve().parent.parent

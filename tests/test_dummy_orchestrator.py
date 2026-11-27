@@ -282,7 +282,7 @@ def copy_repo_tree(target: Path, sandbox_for=(), timeout_ms=None) -> Path:
 
 
 class RealCatalogTest(unittest.TestCase):
-    """The four real tools, seen by an orchestrator. No tool is run except to show the Stage B refusal."""
+    """The four real tools, seen by an orchestrator. The sandbox is a double: nothing is run."""
 
     @classmethod
     def setUpClass(cls):
@@ -328,29 +328,29 @@ class RealCatalogTest(unittest.TestCase):
             "unawaited-async": ["parameter 'files' has no description"] + contract,
         })
 
-    def test_every_real_tool_is_refused_at_dispatch_until_it_declares_a_sandbox(self):
+    def test_every_real_tool_reaches_the_sandbox_under_its_declared_read_root_policy(self):
         arguments = {"git-log": {"n": 1}, "glob": {"pattern": "*.py"},
                      "grep": {"pattern": "x", "files": "*.py"}, "unawaited-async": {"files": "*.ts"}}
         calls = [ToolCall(name, arguments[name]) for name in REAL_TOOLS]
-        report = self.orch.run("agent:alice", ScriptedPlanner(lambda d: calls), project_root=self.project,
-                               stop_on_failure=False)
-        self.assertEqual([(s.status, s.code) for s in report.steps], [("refused", "SandboxUnavailable")] * 4)
-        self.assertEqual(self.sandbox.calls, [])
+        before = len(self.sandbox.calls)
+        self.orch.run("agent:alice", ScriptedPlanner(lambda d: calls), project_root=self.project, stop_on_failure=False)
+        reached = self.sandbox.calls[before:]
+        self.assertEqual(len(reached), 4)
+        self.assertEqual({(c["policy"].filesystem, c["policy"].network) for c in reached}, {("read-root", "none")})
 
 
 @unittest.skipIf(SKIP_REASON is not None, f"container tests need Docker: {SKIP_REASON}")
 class RealToolContainerTest(unittest.TestCase):
-    """The real grep, its manifest given a read-root sandbox in a temporary copy, run in a real container."""
+    """The real grep and glob, with their own manifests (read-root, 5 s), run in a real container."""
 
     @classmethod
     def setUpClass(cls):
         cls._tmp = tempfile.TemporaryDirectory(dir=os.environ.get("TAFFEE_SANDBOX_TMP"))
         base = Path(cls._tmp.name).resolve()
         os.chmod(base, 0o755)
-        # The real tools declare timeoutMs 5000, and the sandbox counts container start-up against it. On the
-        # test host a cold container start alone can take several seconds, so 5000 timed glob out. Stage B has
-        # to decide whether timeoutMs covers start-up; until then this rehearsal declares 30000.
-        cls.root = copy_repo_tree(base / "caps", sandbox_for=("grep", "glob"), timeout_ms=30000)
+        # timeoutMs is the tool's own time: the container sandbox adds a separate start-up allowance, so the real
+        # 5000 ms holds even when a cold container start takes several seconds.
+        cls.root = copy_repo_tree(base / "caps")
         for path in (cls.root, *cls.root.rglob("*")):
             path.chmod(0o755 if path.is_dir() else 0o644)
         cls.project = base / "project"

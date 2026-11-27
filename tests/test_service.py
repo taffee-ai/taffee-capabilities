@@ -124,14 +124,14 @@ class ServiceTest(unittest.TestCase):
 
     def test_versions_and_detail(self):
         status, _, body = self.get("/v1/capabilities/git-log")
-        self.assertEqual((status, [e["version"] for e in body["entries"]]), (200, ["1.2.0"]))
-        status, _, detail = self.get("/v1/capabilities/git-log/1.2.0")
+        self.assertEqual((status, [e["version"] for e in body["entries"]]), (200, ["1.3.0"]))
+        status, _, detail = self.get("/v1/capabilities/git-log/1.3.0")
         self.assertEqual(status, 200)
         self.assertEqual(detail["manifest_view"]["projection_of"], detail["manifest_digest"])
         self.assertTrue(detail["evidence"])
 
     def test_detail_projection_has_exactly_the_allowed_keys_and_no_path_or_executable(self):
-        _, _, detail = self.get("/v1/capabilities/git-log/1.2.0")
+        _, _, detail = self.get("/v1/capabilities/git-log/1.3.0")
         view = detail["manifest_view"]
         self.assertEqual(sorted(view), sorted(["name", "kind", "version", "summary", "owner", "requires", "spec",
                                                "projection_of"]))
@@ -182,7 +182,7 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(sorted(body), ["digest", "kind", "label", "name", "requires", "revocation", "version"])
         self.assertEqual((body["name"], body["version"], body["label"], body["revocation"]),
-                         ("git-log", "1.2.0", "Tested", "unchecked"))
+                         ("git-log", "1.3.0", "Tested", "unchecked"))
         self.assertEqual(body["digest"], GOLDEN["entries"][0]["identity"])
         self.assertEqual(body["requires"], ["repo.read"])
 
@@ -214,7 +214,7 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(self.get("/v2/capabilities")[0], 404)
         self.assertEqual(self.get("/v1/capabilities/Git-Log")[0], 404)
         self.assertEqual(self.get("/v1/capabilities/git-log/01.2.0")[0], 404)
-        self.assertEqual(self.get("/v1/capabilities/git-log/1.2.0/extra")[0], 404)
+        self.assertEqual(self.get("/v1/capabilities/git-log/1.3.0/extra")[0], 404)
 
     def test_the_raw_query_string_is_bounded_before_parsing(self):
         self.assertEqual(self.get("/v1/capabilities?kind=" + "t" * 1100)[0], 400)
@@ -243,7 +243,7 @@ class ServiceTest(unittest.TestCase):
 
 
 class VisibilityTest(unittest.TestCase):
-    HIDDEN = {"tool:glob:1.3.0"}
+    HIDDEN = {"tool:glob:1.4.0"}
 
     def setUp(self):
         self.service = CatalogService(Registry(ROOT), DevAuthorizer(hidden=self.HIDDEN))
@@ -258,7 +258,7 @@ class VisibilityTest(unittest.TestCase):
 
     def test_hidden_equals_absent_byte_for_byte_on_every_read_path(self):
         pairs = (("/v1/capabilities/glob", "/v1/capabilities/no-such-tool"),
-                 ("/v1/capabilities/glob/1.3.0", "/v1/capabilities/no-such-tool/1.3.0"))
+                 ("/v1/capabilities/glob/1.4.0", "/v1/capabilities/no-such-tool/1.4.0"))
         for hidden, absent in pairs:
             a, b = self.service.handle("GET", hidden, DEV), self.service.handle("GET", absent, DEV)
             self.assertEqual(a, b, hidden)
@@ -274,8 +274,8 @@ class VisibilityTest(unittest.TestCase):
 
     def test_below_label_reports_the_best_visible_label_not_a_hidden_one(self):
         newer = copy.deepcopy(next(e for e in GOLDEN["entries"] if e["name"] == "git-log"))
-        newer["version"], newer["label"] = "1.3.0", "Declared"
-        service = CatalogService(FakeIndexRegistry(ROOT, [newer]), DevAuthorizer(hidden={"tool:git-log:1.3.0"}))
+        newer["version"], newer["label"] = "1.4.0", "Declared"
+        service = CatalogService(FakeIndexRegistry(ROOT, [newer]), DevAuthorizer(hidden={"tool:git-log:1.4.0"}))
         status, _, body = call(service, "POST", "/v1/resolve", body=b'{"name":"git-log","minLabel":"Approved"}')
         self.assertEqual((status, body["code"], body["have"]), (409, "BelowLabel", "Tested"))
 
@@ -285,11 +285,11 @@ class VisibilityTest(unittest.TestCase):
         registry = FakeIndexRegistry(ROOT, [twin])
         visible_both = CatalogService(registry, DevAuthorizer())
         self.assertEqual(call(visible_both, "GET", "/v1/capabilities/git-log")[0], 409)
-        self.assertEqual(call(visible_both, "GET", "/v1/capabilities/git-log/1.2.0")[0], 409)
+        self.assertEqual(call(visible_both, "GET", "/v1/capabilities/git-log/1.3.0")[0], 409)
         self.assertEqual(call(visible_both, "GET", "/v1/capabilities/git-log?kind=tool")[0], 200)
-        hidden_agent = CatalogService(registry, DevAuthorizer(hidden={"agent:git-log:1.2.0"}))
+        hidden_agent = CatalogService(registry, DevAuthorizer(hidden={"agent:git-log:1.3.0"}))
         self.assertEqual(call(hidden_agent, "GET", "/v1/capabilities/git-log")[0], 200)
-        self.assertEqual(call(hidden_agent, "GET", "/v1/capabilities/git-log/1.2.0")[0], 200)
+        self.assertEqual(call(hidden_agent, "GET", "/v1/capabilities/git-log/1.3.0")[0], 200)
 
     def test_registry_visible_predicate_applies_before_every_step(self):
         registry = Registry(ROOT)
@@ -403,7 +403,7 @@ class UntouchedArtifactsTest(unittest.TestCase):
     def test_the_golden_index_still_verifies_against_the_tree(self):
         index = Registry(ROOT).verified_index()
         self.assertEqual(index, GOLDEN)
-        self.assertEqual(index["index_digest"], "sha256:2568a039c0e8a006addc56e32715283a5c4f5a5592b3cdd50f2182a78dc967e5")
+        self.assertEqual(index["index_digest"], "sha256:be3879f941fdd493cec630415c410fee76483cc763499f820e86386db82d660b")
 
 
 if __name__ == "__main__":

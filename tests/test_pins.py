@@ -2,7 +2,7 @@
 allowed (S-001 LANGUAGES.md v2 §2).
 
 Four of the five (git-log, glob, grep, unawaited-async) have a Python implementation under
-library/ since T-001 (1.0.0 was declared with none; now 1.2.0, and 1.3.0 for glob), pass their conformance cases
+library/ since T-001 (1.0.0 was declared with none; now 1.3.0, and 1.4.0 for glob), pass their conformance cases
 and have evidence records, so they are Tested. graph-query is still
 declared with none. The prototype is reference only and is never a manifest source.
 """
@@ -76,7 +76,7 @@ class FiveToolsTest(unittest.TestCase):
         (self.root / "catalog" / "tool" / "glob" / "versions.yaml").unlink()
         with self.assertRaises(BuildError) as ctx:
             build_index(self.root)
-        self.assertTrue(any("glob@1.3.0" in e for e in ctx.exception.errors))
+        self.assertTrue(any("glob@1.4.0" in e for e in ctx.exception.errors))
 
 
 if __name__ == "__main__":

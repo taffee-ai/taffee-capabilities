@@ -1,6 +1,6 @@
 # T-005 verification record: sandboxed execution of tools (Stage A)
 
-Status: Stage A implemented, tested and **accepted in review for the agreed scope (2026-10-20)**, after two independent reviews. Contract and bounds as agreed in `CONTRACT-NOTE.md`. **Stage B (declaring the policy on the four built-in tools) is not started and needs a separate review.** T-005's exit gate is met by the fixture tools; the four built-in tools are not yet run sandboxed by default (the executor refuses them).
+Status: Stage A implemented, tested and **accepted in review for the agreed scope (2026-10-20)**, after two independent reviews. Contract and bounds as agreed in `CONTRACT-NOTE.md`. **Stage B (the four built-in tools declare their policy) implemented and tested on 2026-11-26; not yet reviewed** (see the Stage B section). The four built-in tools now run in the container sandbox under their own read-root, no-network policy.
 
 Written for: the reviewer who will check this, and whoever declares limits on the next tool.
 
@@ -96,9 +96,27 @@ Not provable by a code change, stated for honesty: the `SandboxCleanupFailed` ov
 
 Three early full runs of the container tests each failed one random test with "the tool ran past its time limit". The fixture tools declared the 5000 ms default and a container can take longer than that to start on this busy host. The container fixtures (except the one that tests the time limit) now declare 30000 ms; four consecutive full runs of the module then passed, as did the whole suite.
 
+## Stage B: the four built-in tools declare their policy (2026-11-26)
+
+Each built-in tool's manifest now declares `spec.sandbox: {filesystem: read-root, network: none}` with the defaults for memory, output and stdin. They read the repository and never need the network or write access. A changed manifest is a new identity, so each tool has a new version:
+
+| Tool | Before | Now | New identity |
+|---|---|---|---|
+| git-log | 1.2.0 | 1.3.0 | `sha256:78c0c7429540d0abc9a42c1f480d5bbcc60fa0b772d97be8397d8623a549c8ea` |
+| glob | 1.3.0 | 1.4.0 | `sha256:805a407da4684f5370a81273d5818ad4bdafcf6a31e41a30eacf2472543b14e2` |
+| grep | 1.2.0 | 1.3.0 | `sha256:7b928f1468445bced846eaf575536d45e0f3fb81bf4fbfec834f323f2ccf16a9` |
+| unawaited-async | 1.2.0 | 1.3.0 | `sha256:7701890efd94c2ff8473657270b4845489f825a0079a6820763dac4cf5936b87` |
+
+The earlier versions stay in each `versions.yaml` and their evidence records are untouched history.
+
+- **git-log code change.** In the container the tool runs as an unprivileged user that does not own the mounted repository, and git refuses such a repository ("dubious ownership"). git-log now runs `git -c safe.directory=* log ...`. The setting is given on the command line for this one read-only command; nothing is written to any git configuration. The other three tools are unchanged in code.
+- **Time limit.** `timeoutMs` stays 5000. The container sandbox already adds a separate start-up allowance to the deadline, so a slow container start does not count against the tool. The orchestrator rehearsal (`test_dummy_orchestrator.RealToolContainerTest`) now runs the real manifests with the real 5000 ms instead of a copy raised to 30000.
+- **Evidence.** Regenerated for the four new versions with `capability.evidence write`, then checked: 46 tests, 46 passed, for each tool. The golden index was regenerated.
+- **Tests.** `BuiltInToolsTest` now pins the declared policy (read-root, no network, 5 s) and that the executor runs the tools under it. The orchestrator's real-catalog test checks that all four reach the sandbox under that policy. `test_tool_call.ContainerCallTest` runs grep and git-log through `POST /v2/call` in real containers, git-log on a repository owned by another user. Tests that name the current version of a real tool follow the new versions.
+
 ## Limits
 
-- Stage A makes sandboxed execution possible and tested; it does not make the four built-in tools sandboxed by default. They declare no policy and the executor refuses them (a test pins this); Stage B lifts it and needs four version bumps, regenerated evidence and index, as set out in the contract note.
+- Since Stage B, the four built-in tools run in the container sandbox under their declared read-root, no-network policy.
 - A declared `filesystem` other than `unrestricted` needs the container sandbox; `ProcessSandbox` cannot enforce it and the executor then raises `SandboxUnavailable` (tested).
 - The container image and the mount roots are deployment configuration of the sandbox, not manifest fields.
 - No dispatcher exists yet (S-008): `run_tool` is a library function a dispatcher will call; it authorizes nothing (govsec).

@@ -5,3 +5,5 @@ versions:
     identity: sha256:b311ccbb78db873946b2a976e1cc5ade2c6230c6f0be55f25df1b409d7265137
   - version: 1.2.0
     identity: sha256:f022741a5b1b6d6e1ca13ab191d10d937532b3c8e42e7684c7d7b6d5df1a4f5c
+  - version: 1.3.0
+    identity: sha256:7b928f1468445bced846eaf575536d45e0f3fb81bf4fbfec834f323f2ccf16a9

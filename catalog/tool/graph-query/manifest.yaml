@@ -1,4 +1,4 @@
-# Declared with no implementations. Workbench is reference only; T-001 creates the library/ implementations.
+# Declared with no implementations; T-001 creates the library/ implementations.
 kind: tool
 name: graph-query
 version: 1.0.0

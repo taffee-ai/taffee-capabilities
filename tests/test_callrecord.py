@@ -178,7 +178,7 @@ class OutcomeTest(unittest.TestCase):
 
 
 class OutcomeCodeTest(RecorderCase):
-    """review 9c872f9e: a code is never free text, and must be one the status may carry."""
+    """A code is never free text, and must be one the status may carry."""
 
     def refused(self, outcome):
         with self.assertRaises(CallRecordError):
@@ -239,7 +239,7 @@ class OutcomeCodeTest(RecorderCase):
 
 
 class WriteIntegrityTest(RecorderCase):
-    """review 9c872f9e: never report success on a partial line."""
+    """Never report success on a partial line."""
 
     def patched_write(self, wrapper):
         from unittest import mock
@@ -307,7 +307,7 @@ class WriteIntegrityTest(RecorderCase):
         self.assertIn("stopped", str(stopped.exception))
 
     def test_a_whole_line_whose_sync_and_truncation_both_fail_is_a_known_limit(self):
-        """review dab9f60c: here the failed call leaves a VALID record on disk, so verify_log cannot flag it."""
+        """Here the failed call leaves a VALID record on disk, so verify_log cannot flag it."""
         from unittest import mock
         durable = CallRecorder(self.path, clock=self.clock.wall, fsync=True)
         with mock.patch("capability.callrecord.os.fsync", side_effect=OSError(5, "I/O error")):
@@ -536,7 +536,7 @@ class EndToEndTest(unittest.TestCase):
         try:
             match = self.registry.resolve("grep", languages=["python"])
         except RegistryError as exc:
-            return self.recorder.record(call_id, {"kind": "tool", "name": "grep", "version": "1.2.0", "digest": None, "label": None},
+            return self.recorder.record(call_id, {"kind": "tool", "name": "grep", "version": "1.3.0", "digest": None, "label": None},
                                         outcome_for(error=exc))
         identity = Registry(self.root).describe("grep")["identity"]
         ref = capability_ref(match, identity)
@@ -559,7 +559,7 @@ class EndToEndTest(unittest.TestCase):
         match = self.registry.resolve("grep", languages=["python"])
         self.assertEqual(record["outcome"], {"status": "ok", "code": None})
         self.assertEqual(record["capability"]["label"], "Tested")
-        self.assertEqual(record["capability"]["version"], "1.2.0")
+        self.assertEqual(record["capability"]["version"], "1.3.0")
         self.assertEqual(record["code_digest"], match["code_digest"])
         self.assertEqual(record["revocation"], {"status": "checked", "seq": match["revocation_seq"]})
         self.assertEqual(record["grant"], "grant:test-1")
@@ -580,14 +580,14 @@ class EndToEndTest(unittest.TestCase):
 
     def test_a_revoked_capability_is_recorded_as_refused_and_found_by_the_query(self):
         before = self.call("r-1", {"pattern": "hello", "files": "**/*.txt"})
-        self.feed.publish([{"kind": "tool", "name": "grep", "version": "1.2.0"}])
+        self.feed.publish([{"kind": "tool", "name": "grep", "version": "1.3.0"}])
         self.client.poll(self.feed)
         refused = self.call("r-2", {"pattern": "hello", "files": "**/*.txt"})
         self.assertEqual(refused["outcome"], {"status": "refused", "code": "Revoked"})
         self.assertEqual(before["revocation"]["seq"], 0)
-        affected = calls_for(self.log, "tool", "grep", version="1.2.0", outcome="refused")
+        affected = calls_for(self.log, "tool", "grep", version="1.3.0", outcome="refused")
         self.assertEqual([r["call_id"] for r in affected], ["r-2"])
-        self.assertEqual([r["call_id"] for r in calls_for(self.log, "tool", "grep", version="1.2.0")], ["r-1", "r-2"])
+        self.assertEqual([r["call_id"] for r in calls_for(self.log, "tool", "grep", version="1.3.0")], ["r-1", "r-2"])
 
     def test_a_stale_revocation_feed_is_recorded_as_refused_stale(self):
         self.clock.advance(31)

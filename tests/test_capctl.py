@@ -67,7 +67,7 @@ class RealCatalogCase(unittest.TestCase):
 
 class RealToolTest(RealCatalogCase):
     def test_a_tested_tool_verifies_when_revocation_is_skipped_on_request(self):
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertTrue(report.verified, report.lines())
         self.assertEqual([c.name for c in report.checks],
                          ["index", "current", "entry", "digest (python)", "evidence", "revocation", "label"])
@@ -77,7 +77,7 @@ class RealToolTest(RealCatalogCase):
         self.assertEqual(report.lines()[-1], "VERIFIED")
 
     def test_no_revocation_feed_and_no_skip_is_a_failure_that_still_reports_the_rest(self):
-        report = verify(self.root, "grep", "1.2.0")
+        report = verify(self.root, "grep", "1.3.0")
         self.assertFalse(report.verified)
         self.assertEqual(status(report, "revocation"), FAIL)
         self.assertIn("no revocation feed configured", detail(report, "revocation"))
@@ -110,7 +110,7 @@ class RealToolTest(RealCatalogCase):
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         data["label"] = "Approved"
         path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(detail(report, "label"), "Tested")
         self.assertEqual(status(report, "current"), FAIL)  # the edit is still noticed
 
@@ -119,19 +119,19 @@ class IntegrityTest(RealCatalogCase):
     def test_a_changed_index_byte_fails_the_index_and_marks_the_rest_not_run(self):
         path = self.root / "index" / "index.json"
         path.write_bytes(path.read_bytes().replace(b'"Tested"', b'"Approved"', 1))
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(report, "index"), FAIL)
         self.assertTrue(all(c.status == NOT_RUN for c in report.checks[1:]))
         self.assertFalse(report.verified)
 
     def test_a_missing_index_fails_the_index(self):
         (self.root / "index" / "index.json").unlink()
-        self.assertEqual(status(verify(self.root, "grep", "1.2.0", skip_revocation=True), "index"), FAIL)
+        self.assertEqual(status(verify(self.root, "grep", "1.3.0", skip_revocation=True), "index"), FAIL)
 
     def test_a_manifest_edited_after_the_build_fails_current_and_the_rest_still_runs(self):
         path = self.root / "catalog" / "tool" / "glob" / "manifest.yaml"
         path.write_text(path.read_text(encoding="utf-8") + "# edited\n", encoding="utf-8")
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(report, "current"), FAIL)
         self.assertEqual(status(report, "digest (python)"), OK)
         self.assertFalse(report.verified)
@@ -139,16 +139,16 @@ class IntegrityTest(RealCatalogCase):
     def test_a_changed_implementation_fails_current_and_its_own_digest(self):
         main_py = self.root / "library" / "glob" / "python" / "main.py"
         main_py.write_text(main_py.read_text(encoding="utf-8") + "\n# changed\n", encoding="utf-8")
-        report = verify(self.root, "glob", "1.3.0", skip_revocation=True)
+        report = verify(self.root, "glob", "1.4.0", skip_revocation=True)
         self.assertEqual(status(report, "current"), FAIL)
         self.assertEqual(status(report, "digest (python)"), FAIL)
         self.assertIn("IntegrityError", detail(report, "digest (python)"))
-        other = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        other = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(other, "digest (python)"), OK)
 
     def test_a_missing_implementation_folder_is_an_entry_error(self):
         shutil.rmtree(self.root / "library" / "grep" / "python")
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(report, "digest (python)"), FAIL)
         self.assertIn("EntryError", detail(report, "digest (python)"))
 
@@ -159,22 +159,22 @@ class EvidenceTest(RealCatalogCase):
         cases = json.loads(path.read_text(encoding="utf-8"))
         path.write_text(json.dumps(cases + [{"id": "extra", "input": {"pattern": "a", "files": "*.txt"},
                                              "expect": {"ok": False}, "files": {"a.txt": "a"}}]), encoding="utf-8")
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(report, "evidence"), FAIL)
         self.assertIn("differ", detail(report, "evidence"))
 
     def test_a_record_for_another_identity_fails(self):
-        path = self.root / "evidence" / "tools" / "grep" / "1.2.0" / "summary.json"
+        path = self.root / "evidence" / "tools" / "grep" / "1.3.0" / "summary.json"
         data = json.loads(path.read_text(encoding="utf-8"))
         data["identity"] = "sha256:" + "0" * 64
         path.write_text(json.dumps(data), encoding="utf-8")
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(report, "evidence"), FAIL)
         self.assertIn("identity", detail(report, "evidence"))
 
     def test_a_missing_record_at_tested_fails(self):
         shutil.rmtree(self.root / "evidence" / "tools" / "grep")
-        report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+        report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(report, "evidence"), FAIL)
         self.assertIn("no evidence record", detail(report, "evidence"))
 
@@ -183,9 +183,9 @@ class EvidenceTest(RealCatalogCase):
         (self.root / "tests").mkdir(exist_ok=True)
         (self.root / "tests" / "other_suite.py").write_text("# a different suite\n", encoding="utf-8")
         cases = cases_digest(load_cases(self.root / "library" / "grep" / "conformance.json"))
-        write_record(self.root, "grep", "1.2.0", entry["identity"], cases, 2, GOOD, "log\n", "tests/other_suite.py")
+        write_record(self.root, "grep", "1.3.0", entry["identity"], cases, 2, GOOD, "log\n", "tests/other_suite.py")
         with mock.patch("capability.evidence.APPROVED_SUITES", ("tests/test_tools_t001.py", "tests/other_suite.py")):
-            report = verify(self.root, "grep", "1.2.0", skip_revocation=True)
+            report = verify(self.root, "grep", "1.3.0", skip_revocation=True)
         self.assertEqual(status(report, "evidence"), FAIL)
         self.assertIn("fingerprint the evidence record does not carry", detail(report, "evidence"))
 
@@ -269,7 +269,7 @@ class RevocationTest(RealCatalogCase):
         self.feed = FakeFeed(self.clocks, self.private)
 
     def run_verify(self, tool="grep"):
-        return verify(self.root, tool, "1.2.0", client=self.client, feed=self.feed)
+        return verify(self.root, tool, "1.3.0", client=self.client, feed=self.feed)
 
     def test_a_fresh_feed_with_no_revocation_passes(self):
         report = self.run_verify()
@@ -286,12 +286,12 @@ class RevocationTest(RealCatalogCase):
         self.assertFalse(report.verified)
 
     def test_a_revoked_name_and_version_fails_whatever_the_digest(self):
-        self.feed.publish([{"kind": "tool", "name": "grep", "version": "1.2.0"}])
+        self.feed.publish([{"kind": "tool", "name": "grep", "version": "1.3.0"}])
         self.assertEqual(status(self.run_verify(), "revocation"), FAIL)
 
     def test_a_revocation_of_another_tool_or_kind_does_not_fail_this_one(self):
-        self.feed.publish([{"kind": "tool", "name": "glob", "version": "1.3.0"},
-                           {"kind": "agent", "name": "grep", "version": "1.2.0"}])
+        self.feed.publish([{"kind": "tool", "name": "glob", "version": "1.4.0"},
+                           {"kind": "agent", "name": "grep", "version": "1.3.0"}])
         self.assertEqual(status(self.run_verify(), "revocation"), OK)
 
     def test_an_unreachable_feed_fails(self):
@@ -308,7 +308,7 @@ class RevocationTest(RealCatalogCase):
 
     def test_a_feed_signed_with_another_key_fails(self):
         other, _ = make_key()
-        report = verify(self.root, "grep", "1.2.0", client=self.client, feed=FakeFeed(self.clocks, other))
+        report = verify(self.root, "grep", "1.3.0", client=self.client, feed=FakeFeed(self.clocks, other))
         self.assertEqual(status(report, "revocation"), FAIL)
         self.assertIn("BadSignature", detail(report, "revocation"))
 
@@ -331,33 +331,33 @@ class CommandLineTest(RealCatalogCase):
         return encoded, str(base / "feed.jsonl"), str(base / "checkpoint.json")
 
     def test_exit_0_when_verified_and_the_report_is_printed(self):
-        code, text = self.run_main("verify", "grep@1.2.0", "--root", str(self.root), "--skip-revocation")
+        code, text = self.run_main("verify", "grep@1.3.0", "--root", str(self.root), "--skip-revocation")
         self.assertEqual(code, 0, text)
         self.assertTrue(text.rstrip().endswith("VERIFIED") and "NOT VERIFIED" not in text)
         self.assertIn("revocation", text)
         self.assertIn("SKIP", text)
 
     def test_exit_1_when_a_check_fails(self):
-        code, text = self.run_main("verify", "grep@1.2.0", "--root", str(self.root))
+        code, text = self.run_main("verify", "grep@1.3.0", "--root", str(self.root))
         self.assertEqual(code, 1)
         self.assertIn("NOT VERIFIED", text)
         self.assertIn("no revocation feed configured", text)
 
     def test_a_file_feed_passes_and_a_revoked_target_fails(self):
         key, feed, cp = self.feed_files()
-        code, text = self.run_main("verify", "grep@1.2.0", "--root", str(self.root),
+        code, text = self.run_main("verify", "grep@1.3.0", "--root", str(self.root),
                                    "--revocation-key", key, "--feed-file", feed, "--feed-checkpoint", cp)
         self.assertEqual(code, 0, text)
         self.assertIn("checked at seq 0", text)
-        key, feed, cp = self.feed_files(targets=[{"kind": "tool", "name": "grep", "version": "1.2.0"}])
-        code, text = self.run_main("verify", "grep@1.2.0", "--root", str(self.root),
+        key, feed, cp = self.feed_files(targets=[{"kind": "tool", "name": "grep", "version": "1.3.0"}])
+        code, text = self.run_main("verify", "grep@1.3.0", "--root", str(self.root),
                                    "--revocation-key", key, "--feed-file", feed, "--feed-checkpoint", cp)
         self.assertEqual(code, 1)
         self.assertIn("revoked at feed seq 1", text)
 
     def test_a_bad_key_is_a_failed_check_and_the_rest_is_still_reported(self):
         _, feed, cp = self.feed_files()
-        code, text = self.run_main("verify", "grep@1.2.0", "--root", str(self.root),
+        code, text = self.run_main("verify", "grep@1.3.0", "--root", str(self.root),
                                    "--revocation-key", "not-a-key", "--feed-file", feed, "--feed-checkpoint", cp)
         self.assertEqual(code, 1)
         self.assertIn("KeyMissing", text)
@@ -365,7 +365,7 @@ class CommandLineTest(RealCatalogCase):
 
     def test_a_missing_feed_file_is_a_failed_check(self):
         key, _, cp = self.feed_files()
-        code, text = self.run_main("verify", "grep@1.2.0", "--root", str(self.root), "--revocation-key", key,
+        code, text = self.run_main("verify", "grep@1.3.0", "--root", str(self.root), "--revocation-key", key,
                                    "--feed-file", str(Path(self._tmp.name) / "nope.jsonl"), "--feed-checkpoint", cp)
         self.assertEqual(code, 1)
         self.assertIn("SourceUnavailable", text)
@@ -373,10 +373,10 @@ class CommandLineTest(RealCatalogCase):
     def test_exit_2_for_usage_errors(self):
         key, feed, cp = self.feed_files()
         for args in (("verify", "grep", "--skip-revocation"), ("verify", "@1.0.0"), ("verify", "a@b@c"),
-                     ("verify", "grep@1.2.0", "--feed-file", feed),
-                     ("verify", "grep@1.2.0", "--revocation-key", key, "--feed-file", feed,
+                     ("verify", "grep@1.3.0", "--feed-file", feed),
+                     ("verify", "grep@1.3.0", "--revocation-key", key, "--feed-file", feed,
                       "--feed-checkpoint", cp, "--skip-revocation"),
-                     ("verify", "grep@1.2.0", "--kind", "plugin"), ()):
+                     ("verify", "grep@1.3.0", "--kind", "plugin"), ()):
             with self.subTest(args=args):
                 with self.assertRaises(SystemExit) as ctx, contextlib.redirect_stderr(io.StringIO()):
                     main(list(args))

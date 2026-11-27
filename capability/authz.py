@@ -74,6 +74,11 @@ class AdmissionAuthorizer(Authorizer):
     def may_approve(self, principal: Principal) -> bool:
         raise NotImplementedError
 
+    def may_call(self, principal: Principal, ref: dict) -> bool:
+        """S-019: may `principal` run the tool version `ref` (name, kind, version) through `POST /v2/call`?
+        Until govsec answers this, a caller may run what it may see."""
+        return self.may_see(principal, ref)
+
 
 class DevAdmissionAuthorizer(DevAuthorizer, AdmissionAuthorizer):
     """DEVELOPMENT ONLY. Identity from the `X-Dev-Principal` header, as DevAuthorizer. Every identified caller

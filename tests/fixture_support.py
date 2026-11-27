@@ -25,7 +25,7 @@ def new_tree(root: Path) -> Path:
 
 # The current version of each real tool. glob is 1.3.0: its postcondition pattern was rewritten without a
 # lookahead so it matches in linear time under RE2; the other three are still at 1.2.0.
-TOOL_VERSIONS = {"git-log": "1.2.0", "glob": "1.3.0", "grep": "1.2.0", "unawaited-async": "1.2.0"}
+TOOL_VERSIONS = {"git-log": "1.3.0", "glob": "1.4.0", "grep": "1.3.0", "unawaited-async": "1.3.0"}
 
 
 def copy_suite(root: Path) -> None:

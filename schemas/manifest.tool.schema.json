@@ -61,6 +61,14 @@
         "readOnly": {
           "type": "boolean"
         },
+        "effect": {
+          "enum": [
+            "read-only",
+            "reversible",
+            "irreversible"
+          ],
+          "description": "What a call can change: nothing (read-only), something that can be undone (reversible), or something that cannot (irreversible). Optional; when absent it is read-only if readOnly is true, otherwise irreversible."
+        },
         "idempotent": {
           "type": "boolean"
         },

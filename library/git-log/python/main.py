@@ -123,7 +123,7 @@ def run(root, data):
     n = data.get("n")
     if isinstance(n, bool) or not isinstance(n, int) or n < 1 or n > 100:
         raise ToolError("n must be a whole number from 1 to 100")
-    code, out, err = run_bounded(["git", "log", "--oneline", "-%d" % n], root)
+    code, out, err = run_bounded(["git", "-c", "safe.directory=*", "log", "--oneline", "-%d" % n], root)
     if code != 0:
         if "does not have any commits yet" in err:
             return ""

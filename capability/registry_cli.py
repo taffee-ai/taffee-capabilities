@@ -141,6 +141,15 @@ def main(argv=None) -> int:
     p.add_argument("--workers", type=int, default=4, help="parallel admission workers (containers at once)")
     p.add_argument("--max-queued", type=int, default=200)
     p.add_argument("--max-open-per-submitter", type=int, default=20)
+    p.add_argument("--no-calls", action="store_true", help="turn off POST /v2/call (tools are not run for callers)")
+    p.add_argument("--workspaces", default=None,
+                   help="the folder whose subfolders callers name as a tool's workspace in POST /v2/call")
+    p.add_argument("--call-log", default=None, help="the S-012 call record log (default: <data>/calls.jsonl)")
+    p.add_argument("--call-workers", type=int, default=4, help="tool calls run at once; more answer Busy")
+    p.add_argument("--call-reply-hours", type=float, default=24.0,
+                   help="how long a caller's call_id and its stored reply are kept, so a retry is answered, not run")
+    p.add_argument("--call-hold-seconds", type=float, default=660.0,
+                   help="how long a retry waits for the first call with its call_id to finish before answering InProgress")
     _feed_args(p)
     p = sub.add_parser("mcp", help="read-only MCP over stdio, answered by a running registry's REST API")
     p.add_argument("--url", required=True, help="the registry's base URL, e.g. http://127.0.0.1:8090")
@@ -224,8 +233,15 @@ def main(argv=None) -> int:
     work = Path(args.work_dir)
     # One owner per data folder: at start-up, every container with this label was left by a previous run.
     owner = "registry-" + hashlib.sha256(str(Path(args.data).resolve()).encode()).hexdigest()[:16]
-    sandbox = ContainerSandbox(args.sandbox_image, allowed_mount_roots=(work.resolve(), Path(args.data).resolve()),
-                               owner=owner)
+    if args.workspaces == "":  # compose passes an unset setting as an empty value
+        args.workspaces = None
+    workspaces = None
+    if args.workspaces is not None:
+        workspaces = Path(args.workspaces)
+        workspaces.mkdir(parents=True, exist_ok=True)
+        workspaces = workspaces.resolve()
+    roots = (work.resolve(), Path(args.data).resolve()) + ((workspaces,) if workspaces is not None else ())
+    sandbox = ContainerSandbox(args.sandbox_image, allowed_mount_roots=roots, owner=owner)
     from .library_repo import LibraryError, LibraryRepo
 
     for name in ("library", "library_remote", "library_ssh_key", "library_known_hosts"):
@@ -269,7 +285,27 @@ def main(argv=None) -> int:
         print(f"library: committed {synced} admitted version(s) a previous run left out", flush=True)
     queue.resume()  # submissions a restart left open are queued again, ahead of new work
     queue.start()
-    service = RegistryService(registry, admission, DevAdmissionAuthorizer(approvers=args.approver), key, queue=queue)
+    caller = None
+    if args.no_calls:
+        print("tool calls: off (POST /v2/call answers CallsDisabled)", flush=True)
+    else:
+        from .call_replies import CallReplyStore
+        from .callrecord import CallRecorder
+        from .tool_call import ToolCaller
+
+        if not args.call_reply_hours > 0:
+            raise SystemExit("--call-reply-hours must be positive")
+        recorder = CallRecorder(Path(args.call_log) if args.call_log else Path(args.data) / "calls.jsonl")
+        if not args.call_hold_seconds >= 0:
+            raise SystemExit("--call-hold-seconds must not be negative")
+        replies = CallReplyStore(Path(args.data) / "call_replies.sqlite3", retention_s=args.call_reply_hours * 3600,
+                                 hold_s=args.call_hold_seconds)
+        caller = ToolCaller(registry, sandbox, work_dir=work / "calls", workspaces=workspaces, recorder=recorder,
+                            max_concurrent=args.call_workers, replies=replies)
+        print("tool calls: on, " + (f"workspaces under {workspaces}" if workspaces else "no workspace root (only tools "
+                                     "that declare filesystem: none can run)"), flush=True)
+    service = RegistryService(registry, admission, DevAdmissionAuthorizer(approvers=args.approver), key, queue=queue,
+                              caller=caller)
     server = make_server(service, args.host, args.port)
 
     def on_term(signum, frame):  # `docker stop`: stop answering, let workers finish briefly, exit 0

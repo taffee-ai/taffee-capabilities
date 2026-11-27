@@ -154,7 +154,7 @@ class FakeDone:
 
 
 class ContractHelperTest(unittest.TestCase):
-    """review e8bf12d7: the shared result check must itself reject a malformed tool response."""
+    """The shared result check must itself reject a malformed tool response."""
 
     def rejects(self, line, **kwargs):
         with self.assertRaises(AssertionError):
@@ -182,7 +182,7 @@ class ContractHelperTest(unittest.TestCase):
                 self.rejects(line)
 
     def test_strict_json_only(self):
-        """review f122efe8: NaN, Infinity and duplicate keys are not accepted as a JSON result line."""
+        """NaN, Infinity and duplicate keys are not accepted as a JSON result line."""
         for line in ('{"ok": true, "output": "x", "n": NaN}', '{"ok": true, "output": "x", "n": Infinity}',
                      '{"ok": true, "output": "x", "n": -Infinity}', '{"ok": true, "ok": false, "output": "x"}',
                      '{"ok": false, "error": "e", "error": "f"}'):

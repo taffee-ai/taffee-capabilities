@@ -346,7 +346,7 @@ class ExecutorTest(unittest.TestCase):
                 self.assertEqual(result, {"ok": False, "error": TOOL_ERRORS["result"]})
 
     def test_a_result_with_raw_unicode_line_separators_inside_a_string_is_accepted(self):
-        """review c05d0958: str.splitlines() split on these and rejected a valid result."""
+        """str.splitlines() split on these and rejected a valid result."""
         line = ('{"ok": true, "output": "a\u2028b\u2029c\u0085d"}\n').encode("utf-8")
         self.assertEqual(self.run_it(DoubleSandbox(RunResult(0, line, b"", False, False))),
                          {"ok": True, "output": "a\u2028b\u2029c\u0085d"})
@@ -358,7 +358,7 @@ class ExecutorTest(unittest.TestCase):
                                  {"ok": False, "error": TOOL_ERRORS["result"]})
 
     def test_an_input_larger_than_the_declared_stdin_limit_is_an_input_rejection_not_a_fault(self):
-        """review c05d0958: it used to reach the sandbox and raise PolicyError (error/Unexpected)."""
+        """It used to reach the sandbox and raise PolicyError (error/Unexpected)."""
         (self.base / "small").mkdir()
         tree = build_tree(self.base / "small", {"tiny": manifest_for("tiny", {"filesystem": "read-root", "stdinBytes": 64})})
         registry = Registry(tree)
@@ -428,7 +428,7 @@ class ExecutorTest(unittest.TestCase):
         self.assertEqual(record["call_id"], "c-1.1")
 
     def test_a_recorder_without_a_valid_call_id_fails_before_anything_runs(self):
-        """review c3b7a671: the audit join must not be skipped silently, and must not be refused after the tool ran."""
+        """The audit join must not be skipped silently, and must not be refused after the tool ran."""
         from capability.callrecord import CallRecordError
         recorder = CallRecorder(self.log, fsync=False)
         for bad in (None, "", " ", "a b", "x" * 65, "-lead", "a/b", "a\n", 5, ["c-1.1"]):
@@ -464,15 +464,17 @@ class ExecutorTest(unittest.TestCase):
 
 
 class BuiltInToolsTest(unittest.TestCase):
-    """Stage A edits no tool manifest: the four built-in tools declare no policy, so the executor refuses them."""
+    """Stage B: the four built-in tools declare a read-root, no-network policy, so the executor runs them under it."""
 
-    def test_the_four_manifests_declare_no_policy(self):
+    def test_the_four_manifests_declare_a_read_root_policy_with_no_network(self):
         for tool in ("git-log", "glob", "grep", "unawaited-async"):
             with self.subTest(tool=tool):
                 manifest = yaml.safe_load((REPO / "catalog" / "tool" / tool / "manifest.yaml").read_text(encoding="utf-8"))
-                self.assertNotIn("sandbox", manifest["spec"])
+                self.assertEqual(manifest["spec"]["sandbox"], {"filesystem": "read-root", "network": "none"})
+                policy = policy_from_spec(manifest["spec"])
+                self.assertEqual((policy.filesystem, policy.network, policy.timeout_s), ("read-root", "none", 5.0))
 
-    def test_the_executor_refuses_them_until_stage_b(self):
+    def test_the_executor_runs_them_under_their_declared_policy(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "caps"
             root.mkdir()
@@ -481,9 +483,9 @@ class BuiltInToolsTest(unittest.TestCase):
                 shutil.copytree(REPO / folder, root / folder)
             build_index(root, fixture_mode=True)
             double = DoubleSandbox()
-            with self.assertRaises(SandboxUnavailable):
-                run_tool(Registry(root), "glob", {"pattern": "*.py"}, project_root=Path(tmp), sandbox=double)
-            self.assertEqual(double.calls, [])
+            run_tool(Registry(root), "glob", {"pattern": "*.py"}, project_root=Path(tmp), sandbox=double)
+            self.assertEqual(len(double.calls), 1)
+            self.assertEqual(double.calls[0]["policy"].filesystem, "read-root")
 
 
 class UntouchedArtifactsTest(unittest.TestCase):
@@ -617,7 +619,7 @@ class ContainerExitGateTest(unittest.TestCase):
         self.assertEqual(self.leftover(), [])
 
     def test_the_smallest_valid_result_line_is_24_bytes_and_the_schema_floor_is_above_it(self):
-        """review a1edb12b: an outputBytes below the smallest valid result could never succeed. Measured through the sandbox
+        """An outputBytes below the smallest valid result could never succeed. Measured through the sandbox
         directly (a manifest cannot declare these values any more)."""
         from capability.execute import _parse_result
         entry = self.root / "library" / "probe-fs" / "python" / "main.py"

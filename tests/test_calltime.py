@@ -208,7 +208,7 @@ class ResultTest(unittest.TestCase):
 
 
 class LinearTimeTest(unittest.TestCase):
-    """Postcondition patterns run on RE2, so no pattern can hang on a short line (review 1684acd8)."""
+    """Postcondition patterns run on RE2, so no pattern can hang on a short line."""
 
     def post(self, pattern, line, **extra):
         spec = {"postconditions": [dict({"type": "each_line_matches", "pattern": pattern}, **extra)]}
@@ -457,7 +457,7 @@ class MatchCarriesThePostconditionsTest(unittest.TestCase):
                 shutil.copytree(REPO / folder, root / folder)
             build_index(root)
             match = Registry(root).resolve("glob", languages=["python"])
-        self.assertEqual(match["version"], "1.3.0")
+        self.assertEqual(match["version"], "1.4.0")
         self.assertEqual(match["spec"]["postconditions"][0], {"type": "max_bytes", "value": 25000})
         json.dumps(match)
 

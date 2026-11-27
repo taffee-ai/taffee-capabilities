@@ -473,7 +473,7 @@ class ContainerArgvTest(unittest.TestCase):
                     ContainerSandbox(image)
 
     def test_an_option_like_image_is_refused_so_it_cannot_change_the_docker_flags(self):
-        """review 8c8ae68f: the image sits among the options of `docker run`, so a leading dash would be an option."""
+        """The image sits among the options of `docker run`, so a leading dash would be an option."""
         for image in ("--privileged", "--network=host", "-v/:/host", "-e", "-", "--", "--pid=host", "-it",
                       "img\nmore", "img;rm", "img$(x)", "a" * 300):
             with self.subTest(image=image):
@@ -491,7 +491,7 @@ class ContainerArgvTest(unittest.TestCase):
 
 
 class CleanupFailureTest(unittest.TestCase):
-    """review 8f1aee5e: run returns only once the container is confirmed gone, or it raises. No Docker needed:
+    """Run returns only once the container is confirmed gone, or it raises. No Docker needed:
     a fake `docker` script stands in, and can be made to keep listing the container forever."""
 
     def setUp(self):
@@ -569,7 +569,7 @@ class CleanupFailureTest(unittest.TestCase):
 
 
 class ControlPlaneIsolationTest(unittest.TestCase):
-    """review 36d0e6f6: a caller-chosen variable must never reach the docker client's own environment, so
+    """A caller-chosen variable must never reach the docker client's own environment, so
     DOCKER_HOST, PATH or LD_PRELOAD in policy.env cannot redirect or hijack the Docker control plane. A fake
     `docker` records its own environment and the env file it was given. No Docker needed."""
 
@@ -622,7 +622,7 @@ class ControlPlaneIsolationTest(unittest.TestCase):
         self.assertNotEqual(client.get("HOME"), "/tmp/evil")
 
     def test_the_other_docker_client_variables_do_not_reach_the_docker_client(self):
-        """clarification 921c2d92: context, config, TLS and certificate variables also change the endpoint."""
+        """Context, config, TLS and certificate variables also change the endpoint."""
         names = ("DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION")
         self.run_it(names, {name: "attacker" for name in names})
         client = self.client_env()

@@ -16,7 +16,7 @@ Code: `capability/revocation.py`. Tests: `tests/test_revocation.py`.
 
 | Check | Result |
 |---|---|
-| Genesis head equals the SHA-256 of `aicore-revocation-genesis/1` | Pass |
+| Genesis head equals the SHA-256 of `taffee-revocation-genesis/1` | Pass |
 | A valid entry verifies | Pass |
 | One changed byte fails with `BadSignature` | Pass |
 | A signature from another key fails with `BadSignature` | Pass |

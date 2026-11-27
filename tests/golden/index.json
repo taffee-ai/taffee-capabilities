@@ -3,13 +3,13 @@
     {
       "evidence": [
         "conformance:sha256:09424d8ff517ef304988468a91c7c5ee87bea7faf76407e5ca88b38c01ecc958",
-        "tests:sha256:07363fb2a6f932f5d565f0e4c1f9fb5cc988d71b772491ca969213e83dda99fb",
-        "record:sha256:08900e08754d759c82ab686dcb815f468fb77a64bf353a7071a175c5ab0b8d61"
+        "tests:sha256:0462ddcd8f0e30bc1bb129131ecfe47442b1fe41034d14c9729ca20fadb692b9",
+        "record:sha256:f6c387f0b809c4229d83e9391533798638b9b56719a9e7fdb736c9369a788e6d"
       ],
-      "identity": "sha256:1d8c9d8b5c76b6a912908521c297444f5d6ddbb2abb14556c41447d3c0c71b75",
+      "identity": "sha256:78c0c7429540d0abc9a42c1f480d5bbcc60fa0b772d97be8397d8623a549c8ea",
       "implementations": [
         {
-          "code_digest": "sha256:19a6d00d4b8f07b33d1eac982c6bc82fa0877e07498b843d57d899a22d9006ad",
+          "code_digest": "sha256:3ee88583d747b8500b58941dfd301ea169e261ddf6f1e30d8c9e65b0b534b224",
           "entry": "main.py",
           "language": "python"
         }
@@ -57,22 +57,26 @@
             }
           ],
           "readOnly": true,
+          "sandbox": {
+            "filesystem": "read-root",
+            "network": "none"
+          },
           "timeoutMs": 5000
         },
         "summary": "Show the most recent commits on this repository's current branch.",
-        "version": "1.2.0"
+        "version": "1.3.0"
       },
-      "manifest_digest": "sha256:388e40ad74e48419336c3b26f2a9bac9d07cf06a534ec6f5c7dbacf8b1ef56b6",
+      "manifest_digest": "sha256:9b9f17c21a9cfcfc38113d2f761df69a4c8ff1322683c9b3c8b2bb6c0a651221",
       "name": "git-log",
-      "version": "1.2.0"
+      "version": "1.3.0"
     },
     {
       "evidence": [
         "conformance:sha256:f0ade1764961cd43a9fdab2e1342a35bab10e97be9756e9155f8ba6a5ca37afb",
-        "tests:sha256:3923c3e66d2a4a576f2cda307e653dfbc55284a635fa45dcfbe48faf3cb1ffb5",
-        "record:sha256:7e7f150fdbbc0de496258ef0cd0f61ea6958cb6f7a965b69c4a7c50eb7b90f31"
+        "tests:sha256:968542040150be73b33a27feb329cbf209bc81119df8c08b75ecda4a270161f1",
+        "record:sha256:9d73aa2e14f3359ddf183947cd081e22cf410ce9704b5634c56333c43037c89a"
       ],
-      "identity": "sha256:f098fb93e2152e5e680ba479a58cdb44a9818c4b141e699e907438bfb292d7e5",
+      "identity": "sha256:805a407da4684f5370a81273d5818ad4bdafcf6a31e41a30eacf2472543b14e2",
       "implementations": [
         {
           "code_digest": "sha256:4a5cc042a6bc3c3ca80d0775a3087fecc9bc2d6f6e1752340b3dafb607a09907",
@@ -122,14 +126,18 @@
             }
           ],
           "readOnly": true,
+          "sandbox": {
+            "filesystem": "read-root",
+            "network": "none"
+          },
           "timeoutMs": 5000
         },
         "summary": "Find files by name or shape inside the repository.",
-        "version": "1.3.0"
+        "version": "1.4.0"
       },
-      "manifest_digest": "sha256:2e30c78c5c672440413f3dfc09fa1975e804ee013b78a9a430cbbe19eaa64c14",
+      "manifest_digest": "sha256:a2f916642ff50d39380e13ecdff5c4d130764f8f24d04f19111b0482c4953ac6",
       "name": "glob",
-      "version": "1.3.0"
+      "version": "1.4.0"
     },
     {
       "evidence": [],
@@ -196,10 +204,10 @@
     {
       "evidence": [
         "conformance:sha256:48a220a91ef8656ba6751537232352354aa247200b04b53bc9d5580bc0bf48c3",
-        "tests:sha256:611893f4a81940e95ef34fca7c7730fc87ea4eb98712dfa89d4c9d79ca43eafd",
-        "record:sha256:3899a8eb2c25f0e229d6949deef1ea27c6823f32693ee49031244d66cec5ba75"
+        "tests:sha256:17a5909225d8c2c23b220d2f0f3925906fc986f817e31c4fd0b36f682cf66cb0",
+        "record:sha256:f3876580350c0936f0f2bff248ac6f9cc2458e192331a7a86a041ea76787ab84"
       ],
-      "identity": "sha256:f022741a5b1b6d6e1ca13ab191d10d937532b3c8e42e7684c7d7b6d5df1a4f5c",
+      "identity": "sha256:7b928f1468445bced846eaf575536d45e0f3fb81bf4fbfec834f323f2ccf16a9",
       "implementations": [
         {
           "code_digest": "sha256:3bced50bce09dab21fe3cba007ac18233468223e0d3e27a9b09d115c08f57c4a",
@@ -253,22 +261,26 @@
             }
           ],
           "readOnly": true,
+          "sandbox": {
+            "filesystem": "read-root",
+            "network": "none"
+          },
           "timeoutMs": 5000
         },
         "summary": "Search file contents for a text pattern, scoped by a file glob.",
-        "version": "1.2.0"
+        "version": "1.3.0"
       },
-      "manifest_digest": "sha256:8d986d6ad4937c666eb6c3c551ea221b4bd05cadc50abf014e0f38010eb4bd10",
+      "manifest_digest": "sha256:79b8b38cc4e63419f1847218b030ae3b0e15c061e0401393af09b8d0f86a7cb1",
       "name": "grep",
-      "version": "1.2.0"
+      "version": "1.3.0"
     },
     {
       "evidence": [
         "conformance:sha256:63020d049615c01d01e510b8d8be708fc775ddd2f5926cf0c11777155bf2c959",
-        "tests:sha256:5abbf573bb96609fa10a4cef0cae692c5796995b0cc7589641fe94aff1cd1879",
-        "record:sha256:0f8bc2515b204dfc53f9109bab16448ffac6a005aa97d9d45c593be38c25ec17"
+        "tests:sha256:b55b5cf8cc5e47086cb464f687fc04ec5b043691a15048cc80511ea9d94bca50",
+        "record:sha256:f4245151cdc5d88b3163eb1efa51b5438c5bd898944c1e20af9d82b69af10cae"
       ],
-      "identity": "sha256:77abc9f9dbd9a3e4a7752f797007d44fb9c04bbd9ed4ee894aea0970c78b7faa",
+      "identity": "sha256:7701890efd94c2ff8473657270b4845489f825a0079a6820763dac4cf5936b87",
       "implementations": [
         {
           "code_digest": "sha256:08ea8c4f7153c307468c077bcd31cab3e811e8f3fc470da6b70450f69c12044b",
@@ -318,18 +330,22 @@
             }
           ],
           "readOnly": true,
+          "sandbox": {
+            "filesystem": "read-root",
+            "network": "none"
+          },
           "timeoutMs": 5000
         },
         "summary": "Find async functions whose body never uses await (TypeScript and JavaScript). Heuristic.",
-        "version": "1.2.0"
+        "version": "1.3.0"
       },
-      "manifest_digest": "sha256:28f726ee152d3b255756892542c0bf955a932635e218e00832ef522c5f5c6203",
+      "manifest_digest": "sha256:1b7e8948509b39449982b4c2ad2cbe90b99fe808e07badc2484e53a78c58ca06",
       "name": "unawaited-async",
-      "version": "1.2.0"
+      "version": "1.3.0"
     }
   ],
-  "index_digest": "sha256:2568a039c0e8a006addc56e32715283a5c4f5a5592b3cdd50f2182a78dc967e5",
-  "inputs_digest": "sha256:a6bbc05d4dbca884398ad1295e778c3cc6934d7536252710559c5675e3c1e9cd",
+  "index_digest": "sha256:be3879f941fdd493cec630415c410fee76483cc763499f820e86386db82d660b",
+  "inputs_digest": "sha256:0dd09577ce958a0b44f76e0882280dbd24ed929613ecc8981d24636ea64aeffc",
   "policy_version": 2,
   "schema": "capability-index/1"
 }

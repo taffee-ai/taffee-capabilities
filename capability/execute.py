@@ -69,7 +69,7 @@ def _parse_result(done) -> dict:
     try:
         text = done.stdout.decode("utf-8")
         # Split on a line feed only. str.splitlines() would also split on U+2028, U+2029 and U+0085, which a valid
-        # JSON string may contain raw, and would reject a correct result (review c05d0958).
+        # JSON string may contain raw, and would reject a correct result.
         line = text[:-1] if text.endswith("\n") else text
         if not line or "\n" in line:
             return bad
